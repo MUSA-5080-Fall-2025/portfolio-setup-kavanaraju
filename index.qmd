@@ -15,8 +15,11 @@ Advanced spatial analysis and data science for urban planning and public policy.
 - **Final Project:** Capstone modeling challenge
 
 ## About Me
-[Students will customize this section]
+I am a 2nd year Master of City Planning grad at the University of Pennsylvania specializing in Sustainable Transportation and Infrastructure Planning.
 
 ## Contact
-- Email: [your.email@upenn.edu]
-- GitHub: [@your-username]
+- Email: kavana@upenn.edu
+- GitHub: @kavanaraju
+
+## Why I'm taking this class
+Reason
