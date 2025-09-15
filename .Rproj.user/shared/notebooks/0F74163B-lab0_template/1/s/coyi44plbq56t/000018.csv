@@ -1,0 +1,2 @@
+"0","# Select just Model and Mileage columns"
+"0","select(car_data, Model , Mileage)"

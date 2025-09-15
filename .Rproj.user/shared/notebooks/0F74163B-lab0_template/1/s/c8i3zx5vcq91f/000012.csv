@@ -1,0 +1,8 @@
+"0","# Create an 'age' column (2025 minus year of manufacture)"
+"0","car_data <- mutate(car_data , age = 2025 - year)"
+"0",""
+"0","# Create a mileage_per_year column  "
+"0","car_data <- mutate(car_data , mileage_per_year = Mileage / age)"
+"0",""
+"0","# Look at your new columns"
+"0","select(car_data, Model, year, age, Mileage, mileage_per_year)"

@@ -1,0 +1,3 @@
+"0",""
+"0","# Challenge: Select all columns EXCEPT Engine Size"
+"0","select(car_data, - `Engine size`)"
