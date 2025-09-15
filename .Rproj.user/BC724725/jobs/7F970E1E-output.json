@@ -12,3 +12,4 @@
 [1,"GET: /weekly-notes/ (404: Not Found)\n"]
 [1,"GET: /\n"]
 [1,"ERROR: YAMLException: duplicated mapping key (C:\\Users\\kavan\\OneDrive - PennO365\\CPLN FALL 2025\\CPLN 5920_Public Policy Analytics\\Labs\\1_Portfolio_09082025\\portfolio-setup-kavanaraju\\_quarto.yml, 11:9)\n10:         text: Home\n11:         text: \"Weekly Notes\"\n           ~~\n12:         menu: \n"]
+[1,"ERROR: YAMLException: duplicated mapping key (C:\\Users\\kavan\\OneDrive - PennO365\\CPLN FALL 2025\\CPLN 5920_Public Policy Analytics\\Labs\\1_Portfolio_09082025\\portfolio-setup-kavanaraju\\_quarto.yml, 11:9)\n10:         text: Home\n11:         text: \"Weekly Notes\"\n           ~~\n12:         menu: \n"]
