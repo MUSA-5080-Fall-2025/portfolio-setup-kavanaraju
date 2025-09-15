@@ -14,10 +14,8 @@ website:
             text: "Week 1"
           - href: weekly-notes/week-02-notes.html
             text: "Week 2"
-      - href: "Labs"
+      - text: "Labs"
         menu: 
-          - href: labs/
-            text: "All notes"
           - href: labs/lab-01.html
             text: "Lab 1"
           - href: labs/lab-02.html
