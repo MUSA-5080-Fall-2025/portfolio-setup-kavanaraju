@@ -10,17 +10,17 @@ website:
         text: Home
       - text: "Weekly Notes"
         menu: 
-          - href: weekly-notes/week-01-notes.qmd
+          - href: weekly-notes/week-01-notes.html
             text: "Week 1"
-          - href: weekly-notes/week-02-notes.qmd
+          - href: weekly-notes/week-02-notes.html
             text: "Week 2"
       - href: "Labs"
         menu: 
           - href: labs/
             text: "All notes"
-          - href: labs/lab-01.qmd
+          - href: labs/lab-01.html
             text: "Lab 1"
-          - href: labs/lab-02.qmd
+          - href: labs/lab-02.html
             text: "Lab 2"
           
 format:
