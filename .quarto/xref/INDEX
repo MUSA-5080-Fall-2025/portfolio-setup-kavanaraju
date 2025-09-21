@@ -10,5 +10,11 @@
   },
   "labs/lab0/lab0_template.qmd": {
     "lab0_template.html": "714ff753"
+  },
+  "labs/lab_1/assignment1_template.qmd": {
+    "assignment1_template.html": "0eb7a475"
+  },
+  "weekly-notes/week-02-notes.qmd": {
+    "week-02-notes.html": "972b711f"
   }
 }

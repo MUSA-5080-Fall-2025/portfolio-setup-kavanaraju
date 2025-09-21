@@ -221,21 +221,21 @@
     "href": "labs/lab0/lab0_template.html#basic-filtering",
     "title": "Lab 0: Getting Started with dplyr",
     "section": "4.1 Basic Filtering",
-    "text": "4.1 Basic Filtering\n\n# Find all Toyota cars\n\n\n# Find cars with mileage less than 30,000\n\n\n# Find luxury cars (from price category) with low mileage"
+    "text": "4.1 Basic Filtering\n\n# Find all Toyota cars\nfilter(car_data , Manufacturer == \"Toyota\")\n\n# A tibble: 12,554 × 10\n   Manufacturer Model `Engine size` `Fuel type`  year Mileage Price   age\n   &lt;chr&gt;        &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1 Toyota       RAV4            1.8 Hybrid       1988  210814  1705    37\n 2 Toyota       Prius           1.4 Hybrid       2015   30663 30297    10\n 3 Toyota       RAV4            2.2 Petrol       2007   79393 16026    18\n 4 Toyota       Yaris           1.4 Petrol       1998   97286  4046    27\n 5 Toyota       RAV4            2.4 Hybrid       2003  117425 11667    22\n 6 Toyota       Yaris           1.2 Petrol       1992  245990   720    33\n 7 Toyota       RAV4            2   Hybrid       2018   28381 52671     7\n 8 Toyota       Prius           1   Hybrid       2003  115291  6512    22\n 9 Toyota       Prius           1   Hybrid       1990  238571   961    35\n10 Toyota       Prius           1.8 Hybrid       2017   31958 38961     8\n# ℹ 12,544 more rows\n# ℹ 2 more variables: mileage_per_year &lt;dbl&gt;, price_category &lt;chr&gt;\n\n# Find cars with mileage less than 30,000\nfilter(car_data , Mileage &lt; 30000)\n\n# A tibble: 5,402 × 10\n   Manufacturer Model      `Engine size` `Fuel type`  year Mileage Price   age\n   &lt;chr&gt;        &lt;chr&gt;              &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1 Toyota       RAV4                 2   Hybrid       2018   28381 52671     7\n 2 VW           Golf                 2   Petrol       2020   18985 36387     5\n 3 BMW          M5                   4   Petrol       2017   22759 97758     8\n 4 Toyota       RAV4                 2.4 Petrol       2018   24588 49125     7\n 5 VW           Golf                 2   Hybrid       2018   25017 36957     7\n 6 Porsche      718 Cayman           2.4 Petrol       2021   14070 69526     4\n 7 Ford         Focus                1.8 Petrol       2020   22371 40336     5\n 8 Ford         Mondeo               1.6 Diesel       2015   21834 28435    10\n 9 VW           Passat               1.6 Diesel       2018   22122 36634     7\n10 VW           Passat               1.4 Diesel       2020   21413 39310     5\n# ℹ 5,392 more rows\n# ℹ 2 more variables: mileage_per_year &lt;dbl&gt;, price_category &lt;chr&gt;\n\n# Find luxury cars (from price category) with low mileage\nfilter(car_data , price_category == \"luxury\" & Mileage &lt; 10000)\n\n# A tibble: 610 × 10\n   Manufacturer Model  `Engine size` `Fuel type`  year Mileage Price   age\n   &lt;chr&gt;        &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1 Toyota       RAV4             2.4 Petrol       2021    6829 66031     4\n 2 Toyota       RAV4             1.8 Hybrid       2021    8120 68163     4\n 3 Toyota       Yaris            1   Hybrid       2022    5179 36086     3\n 4 Ford         Focus            1.6 Diesel       2022    5750 49870     3\n 5 Ford         Mondeo           2   Diesel       2022    1487 56459     3\n 6 Ford         Mondeo           1.6 Diesel       2022    7454 48982     3\n 7 BMW          Z4               2.4 Petrol       2021    4915 60317     4\n 8 Toyota       RAV4             2   Hybrid       2022    9373 76303     3\n 9 VW           Golf             1.8 Petrol       2021    6373 39459     4\n10 VW           Passat           2   Diesel       2022    7782 57759     3\n# ℹ 600 more rows\n# ℹ 2 more variables: mileage_per_year &lt;dbl&gt;, price_category &lt;chr&gt;"
   },
   {
     "objectID": "labs/lab0/lab0_template.html#multiple-conditions",
     "href": "labs/lab0/lab0_template.html#multiple-conditions",
     "title": "Lab 0: Getting Started with dplyr",
     "section": "4.2 Multiple Conditions",
-    "text": "4.2 Multiple Conditions\n\n# Find cars that are EITHER Honda OR Nissan\n\n\n# Find cars with price between $20,000 and $35,000\n\n\n# Find diesel cars less than 10 years old\n\nQuestion: How many diesel cars are less than 10 years old?\nYour answer: [YOUR ANSWER]"
+    "text": "4.2 Multiple Conditions\n\n# Find cars that are EITHER VW OR BMW\nfilter(car_data, Manufacturer == \"VW\" | Manufacturer == \"BMW\")\n\n# A tibble: 19,878 × 10\n   Manufacturer Model `Engine size` `Fuel type`  year Mileage Price   age\n   &lt;chr&gt;        &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1 VW           Polo            1   Petrol       2006  127869  4101    19\n 2 VW           Polo            1.2 Petrol       2012   73470  9977    13\n 3 VW           Golf            2   Diesel       2014   83047 17173    11\n 4 BMW          Z4              2   Petrol       1990  293666   719    35\n 5 VW           Golf            1.2 Diesel       2007   92697  7792    18\n 6 VW           Golf            1.6 Diesel       1989  222390   933    36\n 7 VW           Polo            1.2 Petrol       1998  155038  2118    27\n 8 VW           Golf            1.2 Hybrid       1987  121744  1890    38\n 9 VW           Golf            2   Petrol       2020   18985 36387     5\n10 VW           Polo            2   Diesel       2008   97001  8784    17\n# ℹ 19,868 more rows\n# ℹ 2 more variables: mileage_per_year &lt;dbl&gt;, price_category &lt;chr&gt;\n\n# Find cars with price between $20,000 and $35,000\nfilter(car_data , Price &gt; 20000 & Price &lt; 35000)\n\n# A tibble: 7,301 × 10\n   Manufacturer Model  `Engine size` `Fuel type`  year Mileage Price   age\n   &lt;chr&gt;        &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1 Ford         Mondeo           1.6 Diesel       2014   39190 24072    11\n 2 Ford         Focus            1.4 Petrol       2018   33603 29204     7\n 3 Toyota       Prius            1.4 Hybrid       2015   30663 30297    10\n 4 Toyota       Prius            1.4 Hybrid       2016   43893 29946     9\n 5 Toyota       Prius            1.4 Hybrid       2016   43130 30085     9\n 6 VW           Passat           1.6 Petrol       2016   64344 23641     9\n 7 Ford         Mondeo           1.6 Diesel       2015   21834 28435    10\n 8 BMW          M5               4.4 Petrol       2008  109941 31711    17\n 9 BMW          Z4               2.2 Petrol       2014   61332 26084    11\n10 Porsche      911              3.5 Petrol       2003  107705 24378    22\n# ℹ 7,291 more rows\n# ℹ 2 more variables: mileage_per_year &lt;dbl&gt;, price_category &lt;chr&gt;\n\n# Find diesel cars less than 10 years old\nfilter(car_data , `Fuel type` == \"Diesel\" & age &lt; 10)\n\n# A tibble: 2,040 × 10\n   Manufacturer Model   `Engine size` `Fuel type`  year Mileage Price   age\n   &lt;chr&gt;        &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1 Ford         Fiesta            1   Diesel       2017   38370 16257     8\n 2 VW           Passat            1.6 Diesel       2018   22122 36634     7\n 3 VW           Passat            1.4 Diesel       2020   21413 39310     5\n 4 BMW          X3                2   Diesel       2018   27389 44018     7\n 5 Ford         Mondeo            2   Diesel       2016   51724 28482     9\n 6 Porsche      Cayenne           2.6 Diesel       2019   20147 76182     6\n 7 VW           Polo              1.2 Diesel       2018   37411 19649     7\n 8 Ford         Mondeo            1.8 Diesel       2016   29439 30886     9\n 9 Ford         Mondeo            1.4 Diesel       2020   18929 37720     5\n10 Ford         Mondeo            1.4 Diesel       2018   42017 28904     7\n# ℹ 2,030 more rows\n# ℹ 2 more variables: mileage_per_year &lt;dbl&gt;, price_category &lt;chr&gt;\n\n\nQuestion: How many diesel cars are less than 10 years old?\nYour answer: 2040"
   },
   {
     "objectID": "labs/lab0/lab0_template.html#basic-summaries",
     "href": "labs/lab0/lab0_template.html#basic-summaries",
     "title": "Lab 0: Getting Started with dplyr",
     "section": "5.1 Basic Summaries",
-    "text": "5.1 Basic Summaries\n\n# Calculate average price by manufacturer\navg_price_by_brand &lt;- car_data %&gt;%\n  group_by(Manufacturer) %&gt;%\n  summarize(avg_price = mean(Price, na.rm = TRUE))\n\navg_price_by_brand\n\n# A tibble: 5 × 2\n  Manufacturer avg_price\n  &lt;chr&gt;            &lt;dbl&gt;\n1 BMW             24429.\n2 Ford            10672.\n3 Porsche         29104.\n4 Toyota          14340.\n5 VW              10363.\n\n# Calculate average mileage by fuel type\n\n\n# Count cars by manufacturer"
+    "text": "5.1 Basic Summaries\n\n# Calculate average price by manufacturer\navg_price_by_brand &lt;- car_data %&gt;%\n  group_by(Manufacturer) %&gt;%\n  summarize(avg_price = mean(Price, na.rm = TRUE))\n\navg_price_by_brand\n\n# A tibble: 5 × 2\n  Manufacturer avg_price\n  &lt;chr&gt;            &lt;dbl&gt;\n1 BMW             24429.\n2 Ford            10672.\n3 Porsche         29104.\n4 Toyota          14340.\n5 VW              10363.\n\n# Calculate average mileage by fuel type\navg_mileage_by_fuel_tyoe &lt;- car_data %&gt;%\n  group_by(`Fuel type`) %&gt;%\n  summarize(avg_mileage = mean(Mileage , na.rm = TRUE))\n\n# Count cars by manufacturer\nnumber_of_cars_by_manufacturer &lt;- car_data %&gt;%\n  group_by(Manufacturer) %&gt;%\n  summarize()\n\nnumber_of_cars_by_manufacturer\n\n# A tibble: 5 × 1\n  Manufacturer\n  &lt;chr&gt;       \n1 BMW         \n2 Ford        \n3 Porsche     \n4 Toyota      \n5 VW"
   },
   {
     "objectID": "labs/lab0/lab0_template.html#categorical-summaries",
@@ -243,5 +243,159 @@
     "title": "Lab 0: Getting Started with dplyr",
     "section": "5.2 Categorical Summaries",
     "text": "5.2 Categorical Summaries\n\n# Frequency table for price categories"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html",
+    "href": "weekly-notes/week-02-notes.html",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "",
+    "text": "Introduction to Git/GitHub for version control, collaboration, and portfolio building\nRole of Quarto in producing reproducible, professional reports that combine code, narrative, and outputs"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-02-notes.html#key-concepts-learned",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "",
+    "text": "Introduction to Git/GitHub for version control, collaboration, and portfolio building\nRole of Quarto in producing reproducible, professional reports that combine code, narrative, and outputs"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#coding-techniques",
+    "href": "weekly-notes/week-02-notes.html#coding-techniques",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nas_tibble() to convert data frames into tibbles for better display\nCore dplyr verbs: select(), filter(), mutate(), summarize(), group_by(), rename(), case_when()\nUse of pipes %&gt;% to build step-by-step workflows"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#questions-challenges",
+    "href": "weekly-notes/week-02-notes.html#questions-challenges",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nStill working on fully grasping the Git workflow (commit, push, pull) and how GitHub Classroom integrates with it"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-02-notes.html#connections-to-policy",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nLearning GitHub workflows builds professional habits useful for collaborative policy projects in agencies and MPOs"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#reflection",
+    "href": "weekly-notes/week-02-notes.html#reflection",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Reflection",
+    "text": "Reflection\n\nMost interesting: seeing how professional portfolios can be built from class assignments and used in future job searches\nI’ll apply this knowledge by keeping my GitHub portfolio clean and well-documented, so it doubles as both a learning record and something I can show employers"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html",
+    "href": "labs/lab_1/assignment1_template.html",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "",
+    "text": "You are a data analyst for the [Your State] Department of Human Services. The department is considering implementing an algorithmic system to identify communities that should receive priority for social service funding and outreach programs. Your supervisor has asked you to evaluate the quality and reliability of available census data to inform this decision.\nDrawing on our Week 2 discussion of algorithmic bias, you need to assess not just what the data shows, but how reliable it is and what communities might be affected by data quality issues.\n\n\n\n\nApply dplyr functions to real census data for policy analysis\nEvaluate data quality using margins of error\nConnect technical analysis to algorithmic decision-making\nIdentify potential equity implications of data reliability issues\nCreate professional documentation for policy stakeholders\n\n\n\n\nSubmit by posting your updated portfolio link on Canvas. Your assignment should be accessible at your-portfolio-url/assignments/assignment_1/\nMake sure to update your _quarto.yml navigation to include this assignment under an “Assignments” menu."
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#scenario",
+    "href": "labs/lab_1/assignment1_template.html#scenario",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "",
+    "text": "You are a data analyst for the [Your State] Department of Human Services. The department is considering implementing an algorithmic system to identify communities that should receive priority for social service funding and outreach programs. Your supervisor has asked you to evaluate the quality and reliability of available census data to inform this decision.\nDrawing on our Week 2 discussion of algorithmic bias, you need to assess not just what the data shows, but how reliable it is and what communities might be affected by data quality issues."
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#learning-objectives",
+    "href": "labs/lab_1/assignment1_template.html#learning-objectives",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "",
+    "text": "Apply dplyr functions to real census data for policy analysis\nEvaluate data quality using margins of error\nConnect technical analysis to algorithmic decision-making\nIdentify potential equity implications of data reliability issues\nCreate professional documentation for policy stakeholders"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#submission-instructions",
+    "href": "labs/lab_1/assignment1_template.html#submission-instructions",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "",
+    "text": "Submit by posting your updated portfolio link on Canvas. Your assignment should be accessible at your-portfolio-url/assignments/assignment_1/\nMake sure to update your _quarto.yml navigation to include this assignment under an “Assignments” menu."
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#data-retrieval",
+    "href": "labs/lab_1/assignment1_template.html#data-retrieval",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "2.1 Data Retrieval",
+    "text": "2.1 Data Retrieval\nYour Task: Use get_acs() to retrieve county-level data for your chosen state.\nRequirements: - Geography: county level - Variables: median household income (B19013_001) and total population (B01003_001)\n- Year: 2022 - Survey: acs5 - Output format: wide\nHint: Remember to give your variables descriptive names using the variables = c(name = \"code\") syntax.\n\n# Write your get_acs() code here\n\n# Clean the county names to remove state name and \"County\" \n# Hint: use mutate() with str_remove()\n\n# Display the first few rows"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#data-quality-assessment",
+    "href": "labs/lab_1/assignment1_template.html#data-quality-assessment",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "2.2 Data Quality Assessment",
+    "text": "2.2 Data Quality Assessment\nYour Task: Calculate margin of error percentages and create reliability categories.\nRequirements: - Calculate MOE percentage: (margin of error / estimate) * 100 - Create reliability categories: - High Confidence: MOE &lt; 5% - Moderate Confidence: MOE 5-10%\n- Low Confidence: MOE &gt; 10% - Create a flag for unreliable estimates (MOE &gt; 10%)\nHint: Use mutate() with case_when() for the categories.\n\n# Calculate MOE percentage and reliability categories using mutate()\n\n# Create a summary showing count of counties in each reliability category\n# Hint: use count() and mutate() to add percentages"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#high-uncertainty-counties",
+    "href": "labs/lab_1/assignment1_template.html#high-uncertainty-counties",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "2.3 High Uncertainty Counties",
+    "text": "2.3 High Uncertainty Counties\nYour Task: Identify the 5 counties with the highest MOE percentages.\nRequirements: - Sort by MOE percentage (highest first) - Select the top 5 counties - Display: county name, median income, margin of error, MOE percentage, reliability category - Format as a professional table using kable()\nHint: Use arrange(), slice(), and select() functions.\n\n# Create table of top 5 counties by MOE percentage\n\n# Format as table with kable() - include appropriate column names and caption\n\nData Quality Commentary:\n[Write 2-3 sentences explaining what these results mean for algorithmic decision-making. Consider: Which counties might be poorly served by algorithms that rely on this income data? What factors might contribute to higher uncertainty?]"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#focus-area-selection",
+    "href": "labs/lab_1/assignment1_template.html#focus-area-selection",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "3.1 Focus Area Selection",
+    "text": "3.1 Focus Area Selection\nYour Task: Select 2-3 counties from your reliability analysis for detailed tract-level study.\nStrategy: Choose counties that represent different reliability levels (e.g., 1 high confidence, 1 moderate, 1 low confidence) to compare how data quality varies.\n\n# Use filter() to select 2-3 counties from your county_reliability data\n# Store the selected counties in a variable called selected_counties\n\n# Display the selected counties with their key characteristics\n# Show: county name, median income, MOE percentage, reliability category\n\nComment on the output: [write something :)]"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#tract-level-demographics",
+    "href": "labs/lab_1/assignment1_template.html#tract-level-demographics",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "3.2 Tract-Level Demographics",
+    "text": "3.2 Tract-Level Demographics\nYour Task: Get demographic data for census tracts in your selected counties.\nRequirements: - Geography: tract level - Variables: white alone (B03002_003), Black/African American (B03002_004), Hispanic/Latino (B03002_012), total population (B03002_001) - Use the same state and year as before - Output format: wide - Challenge: You’ll need county codes, not names. Look at the GEOID patterns in your county data for hints.\n\n# Define your race/ethnicity variables with descriptive names\n\n# Use get_acs() to retrieve tract-level data\n# Hint: You may need to specify county codes in the county parameter\n\n# Calculate percentage of each group using mutate()\n# Create percentages for white, Black, and Hispanic populations\n\n# Add readable tract and county name columns using str_extract() or similar"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#demographic-analysis",
+    "href": "labs/lab_1/assignment1_template.html#demographic-analysis",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "3.3 Demographic Analysis",
+    "text": "3.3 Demographic Analysis\nYour Task: Analyze the demographic patterns in your selected areas.\n\n# Find the tract with the highest percentage of Hispanic/Latino residents\n# Hint: use arrange() and slice() to get the top tract\n\n# Calculate average demographics by county using group_by() and summarize()\n# Show: number of tracts, average percentage for each racial/ethnic group\n\n# Create a nicely formatted table of your results using kable()"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#moe-analysis-for-demographic-variables",
+    "href": "labs/lab_1/assignment1_template.html#moe-analysis-for-demographic-variables",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "4.1 MOE Analysis for Demographic Variables",
+    "text": "4.1 MOE Analysis for Demographic Variables\nYour Task: Examine margins of error for demographic variables to see if some communities have less reliable data.\nRequirements: - Calculate MOE percentages for each demographic variable - Flag tracts where any demographic variable has MOE &gt; 15% - Create summary statistics\n\n# Calculate MOE percentages for white, Black, and Hispanic variables\n# Hint: use the same formula as before (margin/estimate * 100)\n\n# Create a flag for tracts with high MOE on any demographic variable\n# Use logical operators (| for OR) in an ifelse() statement\n\n# Create summary statistics showing how many tracts have data quality issues"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#pattern-analysis",
+    "href": "labs/lab_1/assignment1_template.html#pattern-analysis",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "4.2 Pattern Analysis",
+    "text": "4.2 Pattern Analysis\nYour Task: Investigate whether data quality problems are randomly distributed or concentrated in certain types of communities.\n\n# Group tracts by whether they have high MOE issues\n# Calculate average characteristics for each group:\n# - population size, demographic percentages\n\n# Use group_by() and summarize() to create this comparison\n# Create a professional table showing the patterns\n\nPattern Analysis: [Describe any patterns you observe. Do certain types of communities have less reliable data? What might explain this?]"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#analysis-integration-and-professional-summary",
+    "href": "labs/lab_1/assignment1_template.html#analysis-integration-and-professional-summary",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "5.1 Analysis Integration and Professional Summary",
+    "text": "5.1 Analysis Integration and Professional Summary\nYour Task: Write an executive summary that integrates findings from all four analyses.\nExecutive Summary Requirements: 1. Overall Pattern Identification: What are the systematic patterns across all your analyses? 2. Equity Assessment: Which communities face the greatest risk of algorithmic bias based on your findings? 3. Root Cause Analysis: What underlying factors drive both data quality issues and bias risk? 4. Strategic Recommendations: What should the Department implement to address these systematic issues?\nExecutive Summary:\n[Your integrated 4-paragraph summary here]"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#specific-recommendations",
+    "href": "labs/lab_1/assignment1_template.html#specific-recommendations",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "6.3 Specific Recommendations",
+    "text": "6.3 Specific Recommendations\nYour Task: Create a decision framework for algorithm implementation.\n\n# Create a summary table using your county reliability data\n# Include: county name, median income, MOE percentage, reliability category\n\n# Add a new column with algorithm recommendations using case_when():\n# - High Confidence: \"Safe for algorithmic decisions\"\n# - Moderate Confidence: \"Use with caution - monitor outcomes\"  \n# - Low Confidence: \"Requires manual review or additional data\"\n\n# Format as a professional table with kable()\n\nKey Recommendations:\nYour Task: Use your analysis results to provide specific guidance to the department.\n\nCounties suitable for immediate algorithmic implementation: [List counties with high confidence data and explain why they’re appropriate]\nCounties requiring additional oversight: [List counties with moderate confidence data and describe what kind of monitoring would be needed]\nCounties needing alternative approaches: [List counties with low confidence data and suggest specific alternatives - manual review, additional surveys, etc.]"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#questions-for-further-investigation",
+    "href": "labs/lab_1/assignment1_template.html#questions-for-further-investigation",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "Questions for Further Investigation",
+    "text": "Questions for Further Investigation\n[List 2-3 questions that your analysis raised that you’d like to explore further in future assignments. Consider questions about spatial patterns, time trends, or other demographic factors.]"
+  },
+  {
+    "objectID": "labs/lab_1/assignment1_template.html#submission-checklist",
+    "href": "labs/lab_1/assignment1_template.html#submission-checklist",
+    "title": "Assignment 1: Census Data Quality for Policy Decisions",
+    "section": "Submission Checklist",
+    "text": "Submission Checklist\nBefore submitting your portfolio link on Canvas:\n\nAll code chunks run without errors\nAll “[Fill this in]” prompts have been completed\nTables are properly formatted and readable\nExecutive summary addresses all four required components\nPortfolio navigation includes this assignment\nCensus API key is properly set\nDocument renders correctly to HTML\n\nRemember: Submit your portfolio URL on Canvas, not the file itself. Your assignment should be accessible at your-portfolio-url/assignments/assignment_1/your_file_name.html"
   }
 ]

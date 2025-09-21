@@ -1,0 +1,23 @@
+---
+title: "Week 1 Notes - Course Introduction"
+date: "2025-09-08"
+---
+
+## Key Concepts Learned
+- Introduction to Git/GitHub for version control, collaboration, and portfolio building
+- Role of Quarto in producing reproducible, professional reports that combine code, narrative, and outputs
+
+## Coding Techniques
+- as_tibble() to convert data frames into tibbles for better display
+- Core dplyr verbs: select(), filter(), mutate(), summarize(), group_by(), rename(), case_when()
+- Use of pipes %>% to build step-by-step workflows
+
+## Questions & Challenges
+- Still working on fully grasping the Git workflow (commit, push, pull) and how GitHub Classroom integrates with it
+
+## Connections to Policy
+- Learning GitHub workflows builds professional habits useful for collaborative policy projects in agencies and MPOs
+
+## Reflection
+- Most interesting: seeing how professional portfolios can be built from class assignments and used in future job searches
+- I’ll apply this knowledge by keeping my GitHub portfolio clean and well-documented, so it doubles as both a learning record and something I can show employers
