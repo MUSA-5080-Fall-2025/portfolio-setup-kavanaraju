@@ -1,23 +1,52 @@
 ---
-title: "Week 1 Notes - Course Introduction"
-date: "2025-09-08"
+title: "Week 2 Notes - Course Introduction"
+date: "2025-09-15"
 ---
 
 ## Key Concepts Learned
-- Introduction to Git/GitHub for version control, collaboration, and portfolio building
-- Role of Quarto in producing reproducible, professional reports that combine code, narrative, and outputs
+
+- Algorithms are structured sets of rules used in both everyday life and government decision-making
+
+- Algorithmic decision-making in public policy can embed biases through data cleaning, coding, collection, and interpretation choices
+
+- Real-world failures (healthcare costs proxy, COMPAS, Dutch welfare fraud detection) highlight how “objective” systems still reflect human subjectivity
+
+- Census vs. ACS: differences in scope, frequency, and level of detail
+
+- Margins of error (MOE) are essential for evaluating the reliability of ACS estimates
+
+- Importance of reproducibility and transparency in policy data analysis
 
 ## Coding Techniques
-- as_tibble() to convert data frames into tibbles for better display
-- Core dplyr verbs: select(), filter(), mutate(), summarize(), group_by(), rename(), case_when()
-- Use of pipes %>% to build step-by-step workflows
+
+- Learned to use get_acs() in the tidycensus package to directly access ACS data
+
+- Explored output structure: GEOID, NAME, variable, estimate, MOE
+
+- Data cleaning functions (str_remove(), str_extract(), str_replace()) to tidy up geographic names
+
+- Using case_when() to categorize data reliability based on MOE
+
+- Formatting professional tables with kable() for clarity and presentation
 
 ## Questions & Challenges
-- Still working on fully grasping the Git workflow (commit, push, pull) and how GitHub Classroom integrates with it
+
+- Still clarifying how margins of error should be interpreted when comparing two different geographies—what’s the best way to handle overlapping error ranges?
+
+- Quarto integration with R code chunks for displaying ACS outputs smoothly
 
 ## Connections to Policy
-- Learning GitHub workflows builds professional habits useful for collaborative policy projects in agencies and MPOs
+
+- Algorithms used in government (e.g., predictive policing, healthcare prioritization) rely heavily on census and ACS data. If the underlying data is unreliable, it can perpetuate inequity
+
+- Reporting MOEs alongside estimates is a matter of professional credibility—decision-makers must see not just numbers but their uncertainty
+
+- Policy tools built on flawed proxies or biased data can unintentionally harm marginalized communities
 
 ## Reflection
-- Most interesting: seeing how professional portfolios can be built from class assignments and used in future job searches
-- I’ll apply this knowledge by keeping my GitHub portfolio clean and well-documented, so it doubles as both a learning record and something I can show employers
+
+- The most interesting takeaway was seeing how algorithmic bias emerges not from code alone but from human choices at each stage of data preparation
+
+- I’ll apply this by being cautious and transparent in my own analyses: always noting assumptions, reporting MOEs, and considering who might be excluded from the data
+
+- This week emphasized that ethical, reproducible methods aren’t optional—they’re essential to creating trustworthy analyses for real policy decisions
