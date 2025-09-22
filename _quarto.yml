@@ -31,4 +31,4 @@ format:
     code-fold: true
 
 execute:
-  freeze: auto
+  freeze: false
