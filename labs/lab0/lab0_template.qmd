@@ -1,6 +1,6 @@
 ---
 title: "Lab 0: Getting Started with dplyr"
-subtitle: "Your First Data Analysis"
+subtitle: "My First Data Analysis"
 author: "Kavana Raju"
 date: today
 format: 
@@ -16,16 +16,13 @@ execute:
 
 # Overview
 
-Welcome to your first lab! In this (not graded) assignment, you'll practice the fundamental dplyr operations I overviewed in class using car sales data. This lab will help you get comfortable with:
+Welcome to my first lab! In this assignment, I practiced the fundamental dplyr operations we overviewed in class using car sales data. This lab contains:
 
 - Basic data exploration
 - Column selection and manipulation  
 - Creating new variables
 - Filtering data
 - Grouping and summarizing
-
-**Instructions:** Copy this template into your portfolio repository under a `lab_0/` folder, then complete each section with your code and answers. You will write the code under the comment section in each chunk.
-Be sure to also copy the data folder into your `lab_0` folder.
 
 # Setup
 
@@ -56,14 +53,21 @@ head(car_data)
 ```
 
 **Questions to answer:**
+
 - How many rows and columns does the dataset have?
+
 - What types of variables do you see (numeric, character, etc.)?
+
 - Are there any column names that might cause problems? Why?
 
 **Your answers:**
+
 - Rows: 50,000
+
 - Columns: 7  
+
 - Variable types: Character, Double
+
 - Problematic names: `Engine size` , `Fuel type` , `Year of manufacture` (Because of the space in between)
 
 ## 1.2 Tibble vs Data Frame
@@ -186,14 +190,16 @@ avg_price_by_brand <- car_data %>%
 avg_price_by_brand
 
 # Calculate average mileage by fuel type
-avg_mileage_by_fuel_tyoe <- car_data %>%
+avg_mileage_by_fuel_type <- car_data %>%
   group_by(`Fuel type`) %>%
   summarize(avg_mileage = mean(Mileage , na.rm = TRUE))
+
+avg_mileage_by_fuel_type
 
 # Count cars by manufacturer
 number_of_cars_by_manufacturer <- car_data %>%
   group_by(Manufacturer) %>%
-  summarize()
+  summarize(Count = n())
 
 number_of_cars_by_manufacturer
 ```
@@ -202,17 +208,8 @@ number_of_cars_by_manufacturer
 
 ```{r categorical-summaries}
 # Frequency table for price categories
+price_category_freq <- car_data %>%
+  count(price_category, name = "Number of Cars")
 
+price_category_freq
 ```
-
-
-# Submission Notes
-
-**To submit this lab:**
-1. Make sure your code runs without errors
-2. Fill in all the "[YOUR ANSWER]" sections and complete all of the empty code! 
-3. Save this file in your portfolio's `lab_0/` folder
-4. Commit and push to GitHub
-5. Check that it appears on your GitHub Pages portfolio site
-
-**Questions?** Post on the canvas discussion board or come to office hours!

@@ -208,7 +208,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#basic-summaries" id="toc-basic-summaries" class="nav-link" data-scroll-target="#basic-summaries">5.1 Basic Summaries</a></li>
   <li><a href="#categorical-summaries" id="toc-categorical-summaries" class="nav-link" data-scroll-target="#categorical-summaries">5.2 Categorical Summaries</a></li>
   </ul></li>
-  <li><a href="#submission-notes" id="toc-submission-notes" class="nav-link" data-scroll-target="#submission-notes">Submission Notes</a></li>
   </ul>
 </nav>
 </nav>
@@ -222,7 +221,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Lab 0: Getting Started with dplyr</h1>
-<p class="subtitle lead">Your First Data Analysis</p>
+<p class="subtitle lead">My First Data Analysis</p>
 </div>
 
 
@@ -253,7 +252,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level1">
 <h1>Overview</h1>
-<p>Welcome to your first lab! In this (not graded) assignment, you’ll practice the fundamental dplyr operations I overviewed in class using car sales data. This lab will help you get comfortable with:</p>
+<p>Welcome to my first lab! In this assignment, I practiced the fundamental dplyr operations we overviewed in class using car sales data. This lab contains:</p>
 <ul>
 <li>Basic data exploration</li>
 <li>Column selection and manipulation<br>
@@ -262,7 +261,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Filtering data</li>
 <li>Grouping and summarizing</li>
 </ul>
-<p><strong>Instructions:</strong> Copy this template into your portfolio repository under a <code>lab_0/</code> folder, then complete each section with your code and answers. You will write the code under the comment section in each chunk. Be sure to also copy the data folder into your <code>lab_0</code> folder.</p>
 </section>
 <section id="setup" class="level1">
 <h1>Setup</h1>
@@ -316,9 +314,19 @@ $ Price                 &lt;dbl&gt; 3074, 49704, 24072, 1705, 4101, 29204, 14350
 # ℹ 1 more variable: Price &lt;dbl&gt;</code></pre>
 </div>
 </div>
-<p><strong>Questions to answer:</strong> - How many rows and columns does the dataset have? - What types of variables do you see (numeric, character, etc.)? - Are there any column names that might cause problems? Why?</p>
-<p><strong>Your answers:</strong> - Rows: 50,000 - Columns: 7<br>
-- Variable types: Character, Double - Problematic names: <code>Engine size</code> , <code>Fuel type</code> , <code>Year of manufacture</code> (Because of the space in between)</p>
+<p><strong>Questions to answer:</strong></p>
+<ul>
+<li><p>How many rows and columns does the dataset have?</p></li>
+<li><p>What types of variables do you see (numeric, character, etc.)?</p></li>
+<li><p>Are there any column names that might cause problems? Why?</p></li>
+</ul>
+<p><strong>Your answers:</strong></p>
+<ul>
+<li><p>Rows: 50,000</p></li>
+<li><p>Columns: 7</p></li>
+<li><p>Variable types: Character, Double</p></li>
+<li><p>Problematic names: <code>Engine size</code> , <code>Fuel type</code> , <code>Year of manufacture</code> (Because of the space in between)</p></li>
+</ul>
 </section>
 <section id="tibble-vs-data-frame" class="level2">
 <h2 class="anchored" data-anchor-id="tibble-vs-data-frame">1.2 Tibble vs Data Frame</h2>
@@ -29215,41 +29223,57 @@ $ Price                 &lt;dbl&gt; 3074, 49704, 24072, 1705, 4101, 29204, 14350
 5 VW              10363.</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average mileage by fuel type</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>avg_mileage_by_fuel_tyoe <span class="ot">&lt;-</span> car_data <span class="sc">%&gt;%</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>avg_mileage_by_fuel_type <span class="ot">&lt;-</span> car_data <span class="sc">%&gt;%</span></span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="st">`</span><span class="at">Fuel type</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_mileage =</span> <span class="fu">mean</span>(Mileage , <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Count cars by manufacturer</span></span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>number_of_cars_by_manufacturer <span class="ot">&lt;-</span> car_data <span class="sc">%&gt;%</span></span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Manufacturer) <span class="sc">%&gt;%</span></span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>()</span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>number_of_cars_by_manufacturer</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>avg_mileage_by_fuel_type</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 1
-  Manufacturer
-  &lt;chr&gt;       
-1 BMW         
-2 Ford        
-3 Porsche     
-4 Toyota      
-5 VW          </code></pre>
+<pre><code># A tibble: 3 × 2
+  `Fuel type` avg_mileage
+  &lt;chr&gt;             &lt;dbl&gt;
+1 Diesel          112667.
+2 Hybrid          111622.
+3 Petrol          112795.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count cars by manufacturer</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>number_of_cars_by_manufacturer <span class="ot">&lt;-</span> car_data <span class="sc">%&gt;%</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Manufacturer) <span class="sc">%&gt;%</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">Count =</span> <span class="fu">n</span>())</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>number_of_cars_by_manufacturer</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+  Manufacturer Count
+  &lt;chr&gt;        &lt;int&gt;
+1 BMW           4965
+2 Ford         14959
+3 Porsche       2609
+4 Toyota       12554
+5 VW           14913</code></pre>
 </div>
 </div>
 </section>
 <section id="categorical-summaries" class="level2">
 <h2 class="anchored" data-anchor-id="categorical-summaries">5.2 Categorical Summaries</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for price categories</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table for price categories</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>price_category_freq <span class="ot">&lt;-</span> car_data <span class="sc">%&gt;%</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(price_category, <span class="at">name =</span> <span class="st">"Number of Cars"</span>)</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>price_category_freq</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+  price_category `Number of Cars`
+  &lt;chr&gt;                     &lt;int&gt;
+1 budget                    34040
+2 luxury                     6178
+3 midrange                   9782</code></pre>
 </div>
-</section>
-</section>
-<section id="submission-notes" class="level1">
-<h1>Submission Notes</h1>
-<p><strong>To submit this lab:</strong> 1. Make sure your code runs without errors 2. Fill in all the “[YOUR ANSWER]” sections and complete all of the empty code! 3. Save this file in your portfolio’s <code>lab_0/</code> folder 4. Commit and push to GitHub 5. Check that it appears on your GitHub Pages portfolio site</p>
-<p><strong>Questions?</strong> Post on the canvas discussion board or come to office hours!</p>
+</div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
