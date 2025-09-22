@@ -1,5 +1,0 @@
-"0","# Set Census API key
-census_api_key(Sys.getenv(""52f0462d8b4e1e19ee64b25a3196677c5e32e660""), install = TRUE)
-"
-"2","Error: A CENSUS_API_KEY already exists. You can overwrite it with the argument overwrite=TRUE
-"

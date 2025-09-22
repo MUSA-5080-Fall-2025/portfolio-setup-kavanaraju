@@ -1,0 +1,35 @@
+"0","# Test the variables you found"
+"0","test_vars <- c("
+"0","  total_pop = ""B01003_001"",      # Total population"
+"0","  median_income = ""B19013_001"",  # Median household income"
+"0","  median_age = ""B01002_001""      # Median age"
+"0",")"
+"0",""
+"0","# Get data for just one state to test"
+"0","test_data <- get_acs("
+"0","  geography = ""state"","
+"0","  variables = test_vars,"
+"0","  state = ""PA"","
+"0","  year = 2022"
+"0",")"
+"2","Getting data from the 2018-2022 5-year ACS
+"
+"2","Warning:"
+"2"," [36m•[39m You have not set a Census API key. Users without a key are limited to 500
+queries per day and may experience performance limitations.
+[34mℹ[39m For best results, get a Census API key at
+http://api.census.gov/data/key_signup.html and then supply the key to the
+`census_api_key()` function to use it throughout your tidycensus session.
+[90mThis warning is displayed once per session.[39m
+"
+"2","Using FIPS code '42' for state 'PA'
+"
+"0","# Check that you got what you expected"
+"0","test_data"
+"2","Warning in gzfile(file, ""wb"") :"
+"2","
+ "
+"2"," cannot open compressed file 'C:/Users/kavan/OneDrive - PennO365/CPLN FALL 2025/CPLN 5920_Public Policy Analytics/Labs/1_Portfolio_09082025/portfolio-setup-kavanaraju/labs/lab_2/week3_lab2/.Rproj.user/shared/notebooks/C981D2C1-week3_lab_exercise/1/s/cie8qmnnlpty7_t\_rs_rdf_15228136d69d3.rdf', probable reason 'No such file or directory'
+"
+"2","Error in gzfile(file, ""wb"") : cannot open the connection
+"

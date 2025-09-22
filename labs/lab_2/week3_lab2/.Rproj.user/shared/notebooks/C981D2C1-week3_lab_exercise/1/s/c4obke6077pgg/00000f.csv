@@ -1,0 +1,42 @@
+"0","# Get county-level data for your state"
+"0","county_data <- get_acs("
+"0","  geography = ""county"","
+"0","  variables = c("
+"0","    total_pop = ""B01003_001"",       # Total population"
+"0","    median_income = ""B19013_001"",   # Median household income"
+"0","    median_age = ""B01002_001""       # Median age"
+"0","  ),"
+"0","  state = state_choice,"
+"0","  year = 2022,"
+"0","  output = ""wide"""
+"0",")"
+"2","Getting data from the 2018-2022 5-year ACS
+"
+"2","Using FIPS code '42' for state 'PA'
+"
+"0","# Clean county names"
+"0","county_data <- county_data %>%"
+"0","  mutate(county_name = str_remove(NAME, paste0("", "", state_choice)))"
+"0",""
+"0","# Basic inspection"
+"0","glimpse(county_data)"
+"1","Rows: 67"
+"1",""
+"1","
+"
+"1","Columns: 9"
+"1",""
+"1","
+"
+"1","$ GEOID          [3m[38;5;246m<chr>[39m[23m ""42001"", ""42003"", ""42005"", ""42007"", ""42009"", ""42011"", ""42013"", ""…
+$ NAME           [3m[38;5;246m<chr>[39m[23m ""Adams County, Pennsylvania"", ""Allegheny County, Pennsylvania"", …
+$ total_popE     [3m[38;5;246m<dbl>[39m[23m 104604, 1245310, 65538, 167629, 47613, 428483, 122640, 60159, 64…
+$ total_popM     [3m[38;5;246m<dbl>[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ median_incomeE [3m[38;5;246m<dbl>[39m[23m 78975, 72537, 61011, 67194, 58337, 74617, 59386, 60650, 107826, …
+$ median_incomeM [3m[38;5;246m<dbl>[39m[23m 3334, 869, 2202, 1531, 2606, 1191, 2058, 2167, 1516, 2164, 1809,…
+$ median_ageE    [3m[38;5;246m<dbl>[39m[23m 43.8, 40.6, 47.0, 44.9, 47.3, 39.9, 42.9, 43.9, 44.0, 43.4, 45.6…
+$ median_ageM    [3m[38;5;246m<dbl>[39m[23m 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 1.0, 0.4,…
+$ county_name    [3m[38;5;246m<chr>[39m[23m ""Adams County, Pennsylvania"", ""Allegheny County, Pennsylvania"", …"
+"1",""
+"1","
+"

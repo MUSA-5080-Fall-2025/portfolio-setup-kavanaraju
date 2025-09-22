@@ -121,7 +121,6 @@ medage_concept <- acs_vars_2022 %>%
 
 head(medage_concept)
 ```
-	
 Median Age is `B01002_001`
 
 ### 0.5 Advanced Search Techniques
@@ -322,6 +321,44 @@ and identify outliers.
 -   Create a boxplot to identify population outliers
 -   Find and list the 3 most populous and 3 least populous counties
 
+```{r}
+# Create histogram of population distribution
+ggplot(county_data) +
+  aes(x = total_popE) +
+  geom_histogram(bins = 15, fill = "darkblue", alpha = 0.7) +
+  labs(
+    title = "Distribution of Total Population",
+    x = "Total Population",
+    y = "Number of Counties"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+# Box plot to see outliers clearly
+ggplot(county_data) +
+  aes(y = total_popE) +
+  geom_boxplot(fill = "darkblue", width = 0.5) +
+  labs(
+    title = "Population Distribution with Outliers",
+    y = "Population"
+  ) +
+  theme_minimal()
+
+# Identify the outlier counties
+population_outliers <- county_data %>%
+  mutate(
+    Q1 = quantile(total_popE, 0.25, na.rm = TRUE),
+    Q3 = quantile(total_popE, 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1,
+    outlier = total_popE < (Q1 - 1.5 * IQR) | total_popE > (Q3 + 1.5 * IQR)
+  ) %>%
+  filter(outlier) %>%
+  select(county_name, total_popE)
+
+print("Outlier counties:")
+income_outliers
+```
 ------------------------------------------------------------------------
 
 ## Exercise 2: Two Variable Relationships
@@ -355,7 +392,7 @@ interesting points.
 # Enhanced scatter plot with trend line
 ggplot(county_data) +
   aes(x = total_popE, y = median_incomeE) +
-  geom_point(alpha = 0.7) +
+  geom_point(alpha = 0.7, color = "blue") +
   geom_smooth(method = "lm", se = TRUE, color = "red") +
   labs(
     title = "Population vs Median Income in Pennsylvania Counties",
@@ -410,6 +447,24 @@ income using different visualization techniques.
 -   Use the "dark" theme (`theme_dark()`)
 -   Format the y-axis with dollar signs
 -   Add a title that mentions both variables
+
+```{r}
+# Scatter plot with trend line
+ggplot(county_data) +
+  aes(x = median_ageE, y = median_incomeE) +
+  geom_point(alpha = 0.5, color = "red") +
+  geom_smooth(method = "loess", se = TRUE, color = "red") +
+  labs(
+    title = "Median Age vs Median Income in Pennsylvania Counties",
+    subtitle = "2018-2022 ACS 5-Year Estimates",
+    x = "Median Age",
+    y = "Median Household Income ($)",
+    caption = "Source: U.S. Census Bureau"
+  ) +
+  theme_dark() +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar)
+```
 
 ------------------------------------------------------------------------
 
@@ -483,6 +538,45 @@ population vs age MOE percentage
 using `geom_hline()` with a blue dashed line 
 - Use `theme_classic()`instead of `theme_minimal()` 
 - Create a boxplot comparing age MOE across the three population categories
+
+```{r}
+# Calculate MOE percentage for median age
+moepct_medianage <- county_data %>%
+  mutate(
+    medianage_moe_pct = (median_ageM / median_ageE) * 100,
+    age_category = case_when(
+      median_ageE < 40 ~ "Young - Less than 40",
+      median_ageE < 45 ~ "Middle-aged - 40 to 45",
+      TRUE ~ "Old - More than 45"
+    )
+  )
+
+# Scatter Plot
+ggplot(moepct_medianage) +
+  aes(x = median_ageE, y = medianage_moe_pct) +
+  geom_point(color = "purple", alpha = 2) +
+  geom_hline(yintercept = 5, color = "blue", linetype = "dashed") +
+  labs(
+    title = "Data Reliability Decreases with Population Size",
+    x = "Total Population",
+    y = "Margin of Error (%)",
+    caption = "Blue line = 5% reliability threshold"
+  ) +
+  theme_classic() +
+  scale_x_continuous(labels = comma)
+
+# Box plots by age category
+ggplot(moepct_medianage) +
+  aes(x = age_category, y = medianage_moe_pct, fill = age_category) +
+  geom_boxplot() +
+  labs(
+    title = "Data Reliability by Age Category",
+    x = "Age Category",
+    y = "Margin of Error (%)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend since x-axis is clear
+```
 
 ------------------------------------------------------------------------
 
