@@ -330,24 +330,24 @@ top_hispanic_tracts %>%
 # Show: number of tracts, average percentage for each racial/ethnic group
 
 county_avgs <- tract_data %>%
-  group_by(county_name) %>%
+  group_by(county) %>%
   summarise(
     Tracts = n(),
     `Avg % White` = mean(pct_white, na.rm = TRUE),
     `Avg % Black` = mean(pct_black, na.rm = TRUE),
     `Avg % Hispanic/Latino` = mean(pct_hisp, na.rm = TRUE)
   ) %>%
-  mutate(
-    `Avg % White`          = sprintf("%.1f%%", `Avg % White`),
-    `Avg % Black`          = sprintf("%.1f%%", `Avg % Black`),
-    `Avg % Hispanic/Latino`= sprintf("%.1f%%", `Avg % Hispanic/Latino`)
-  ) %>%
-  rename(County = county_name)
-
+  rename(County = county)
 
 # Create a nicely formatted table of your results using kable()
-knitr::kable(county_avgs,
-             caption = "Average Demographics by County (Selected Counties)")
+county_avgs %>%
+  knitr::kable(
+    caption   = "Average Demographics by County (Selected Counties)",
+    col.names = c("County","Tracts","Avg % White","Avg % Black","Avg % Hispanic/Latino"),
+    digits    = c(NA, 0, 2, 2, 2),      # one decimal place for % cols
+    align     = c("l","r","r","r","r")
+  ) %>%
+  kableExtra::kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
 
 ```
 
