@@ -204,7 +204,7 @@ top5_uncertain %>%
 
 **Data Quality Commentary:**
 
-Across Pennsylvania, the counties with the largest income MOE are small counties such as Forest, Sullivan, Union, Montour, and Elk, with MOE between 6% and 10%. If an algorithm ranks counties by median income without accounting for this uncertainty, these counties can be misclassified because of sampling error and may cross decision thresholds incorrectly. Because they have smaller populations, they should be treated with caution and considered for manual review or aggregation to larger geographies.
+Across Pennsylvania, the counties with the largest household income MOE are small counties such as Forest, Sullivan, Union, Montour, and Elk, with MOE between 6% and 10%. If an algorithm ranks counties by median income without accounting for this uncertainty, these counties can be misclassified because of sampling error and may cross decision thresholds incorrectly. Because they have smaller populations, they should be treated with caution and considered for manual review or aggregation to larger geographies.
 
 # Part 3: Neighborhood-Level Analysis
 
@@ -433,7 +433,7 @@ tract_pattern %>%
 
 ```
 
-**Pattern Analysis:** In Adams County, nearly all tracts are flagged as high MOE. These tracts average larger populations than the one tract without high MOE, but they also have more racial and ethnic diversity, with higher shares of Black and Hispanic residents. This suggests that subgroup estimates rather than overall population size are driving the reliability issues. In Cameron County, both tracts are high MOE and have very small populations, which reflects the role of sample size in producing unstable estimates. Together, these findings indicate that high MOE is concentrated both in small rural counties and in tracts where minority subgroup populations are relatively small, creating equity risks if algorithms apply thresholds without accounting for uncertainty.
+**Pattern Analysis:** In Adams County, almost all tracts are flagged as high MOE, and the tracts with high MOE also show more racial and ethnic diversity than the single tract without issues. In Cameron County, every tract is flagged as high MOE, reflecting the effect of very small population size. This pattern confirms that high MOE is concentrated both in small rural places and in tracts where subgroup counts are small, which increases the risk of unstable algorithmic classifications.
 
 # Part 5: Policy Recommendations
 
@@ -446,13 +446,19 @@ all four analyses.
 Identification**: What are the systematic patterns across all your
 analyses? 2. **Equity Assessment**: Which communities face the greatest
 risk of algorithmic bias based on your findings? 3. **Root Cause
-Analysis**: What underlying factors drive both data quality issues and
+Analysis** :  What underlying factors drive both data quality issues and
 bias risk? 4. **Strategic Recommendations**: What should the Department
 implement to address these systematic issues?
 
 **Executive Summary:**
 
-\[Your integrated 4-paragraph summary here\]
+1. **Overall Pattern Identification**: Most counties in Pennsylvania fall into the high confidence group, and only a handful are moderate confidence. At the county scale, ACS estimates for income are fairly stable. At the tract scale, however, many estimates exceed the reliability threshold, showing that data quality declines as geography becomes more granular.
+
+2. **Equity Assessment**: Communities most at risk of algorithmic bias are those with smaller populations and greater diversity. These are the places where sampling variability makes the data least reliable. If an algorithm ranks tracts or counties without accounting for uncertainty, these communities could be wrongly deprioritized or overrepresented in resource allocations.
+
+3. **Root Cause Analysis**: The reliability issues are driven by sample size and subgroup sparsity. Smaller counties and tracts have fewer responses, and race and ethnicity subgroups within them have even smaller counts, leading to higher margins of error. County level data appears stable because the sample is larger, while tract level data shows greater variation. These patterns reflect how ACS sampling works rather than errors in the data.
+
+4. **Strategic Recommendations**: Algorithmic prioritization can move forward in high confidence counties, with standard monitoring in place. In moderate confidence counties, margins of error should be factored into scoring and human review should be required for borderline cases. At the tract level, reliability weighting, aggregation, and the use of complementary administrative data can reduce the risk of misclassification. All tracts flagged with high MOE should be subject to human oversight, and the Department should establish monitoring routines to catch disparities introduced by uncertainty.
 
 ## 6.3 Specific Recommendations
 
@@ -496,39 +502,37 @@ rec_table %>%
 the department.
 
 1.  **Counties suitable for immediate algorithmic implementation:**
-    \[List counties with high confidence data and explain why they're
-    appropriate\]
+    These are counties with high confidence data. Their margins of error are below 5 percent, which means the ACS estimates are stable and can be used in automated ranking and prioritization. The department can proceed with algorithmic allocation in these places with standard outcome monitoring to ensure fairness.
+    Counties: Adams, Allegheny, Armstrong, Beaver, Bedford, Berks, Blair, Bradford, Bucks, Butler, Cambria, Centre, Chester, Clarion, Clearfield, Clinton, Columbia, Crawford, Cumberland, Dauphin, Delaware, Erie, Fayette, Franklin, Fulton, Huntingdon, Indiana, Jefferson, Juniata, Lackawanna, Lancaster, Lawrence, Lebanon, Lehigh, Luzerne, Lycoming, McKean, Mercer, Mifflin, 	
+Monroe, Montgomery, Northampton, Northumberland, Perry, Philadelphia, Pike, Potter, Schuylkill, Somerset, Susquehanna, Tioga, Venango, Washington, Wayne, Westmoreland, Wyoming, and York.
 
-2.  **Counties requiring additional oversight:** \[List counties with
-    moderate confidence data and describe what kind of monitoring would
-    be needed\]
+2.  **Counties requiring additional oversight:** 
+    These are counties with moderate confidence data, where margins of error fall between 5 and 10 percent. Estimates here are less precise, so algorithms should be used with caution. The department should adjust scoring to account for reliability, add human review for borderline cases, and monitor allocations to verify that communities are neither under- nor over-prioritized due to sampling error.
+    Counties: Cameron, Carbon, Elk, Forest, Greene, Montour, Snyder, Sullivan, Union, and Warren.
 
-3.  **Counties needing alternative approaches:** \[List counties with
-    low confidence data and suggest specific alternatives - manual
-    review, additional surveys, etc.\]
+3.  **Counties needing alternative approaches:** 
+    These are counties or tracts where margins of error exceed acceptable thresholds. At the county level this group may be empty, but at the tract level many places fall here. In such cases, alternative strategies are needed: aggregating small geographies, combining ACS with administrative data, and requiring manual validation before final decisions. This ensures communities are not misclassified due to unstable estimates.
 
 ## Questions for Further Investigation
 
-\[List 2-3 questions that your analysis raised that you'd like to
-explore further in future assignments. Consider questions about spatial
-patterns, time trends, or other demographic factors.\]
+- Are high MOE tracts geographically clustered and do these clusters overlap with areas of higher service need?
+
+- How stable are county and tract level reliability measures across ACS releases?
+
+- What other datasets could be combined with ACS to reduce uncertainty and strengthen targeting?
 
 # Technical Notes
 
 **Data Sources:** - U.S. Census Bureau, American Community Survey
 2018-2022 5-Year Estimates - Retrieved via tidycensus R package on
-\[date\]
+09/23/2025. 
 
-**Reproducibility:** - All analysis conducted in R version \[your
-version\] - Census API key required for replication - Complete code and
+**Reproducibility:** - All analysis conducted in R version 4.4.1 - Census API key required for replication - Complete code and
 documentation available at: \[your portfolio URL\]
 
-**Methodology Notes:** \[Describe any decisions you made about data
-processing, county selection, or analytical choices that might affect
-reproducibility\]
+**Methodology Notes:** Reliability categories were defined using relative margins of error. Counties were selected to represent different reliability levels. Tracts were flagged as high MOE if any race or ethnicity variable exceeded a 15 percent margin of error.
 
-**Limitations:** \[Note any limitations in your analysis - sample size
-issues, geographic scope, temporal factors, etc.\]
+**Limitations:** Margins of error are especially large at small geographic scales and for subgroup estimates, making tract level analysis more uncertain. This work uses one ACS release and does not test temporal consistency. Only a subset of variables was analyzed, and nonresponse patterns in ACS may add further bias not captured by MOE.
 
 ------------------------------------------------------------------------
 
