@@ -403,42 +403,42 @@
     "href": "weekly-notes/week-03-notes.html",
     "title": "Week 2 Notes - Course Introduction",
     "section": "",
-    "text": "[List main concepts from lecture]\n[Technical skills covered]"
+    "text": "Visualization matters: summary statistics can obscure patterns; outliers may represent critical communities.\n\n\nEthical responsibility to report MOE, show uncertainty, and avoid misleading visuals.\n\nGrammar of Graphics (ggplot2):\nData → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.\n\nExploratory Data Analysis (EDA): a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.\n\nData Joins: left, right, inner, and full joins for integrating datasets in policy analysis."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#key-concepts-learned",
     "href": "weekly-notes/week-03-notes.html#key-concepts-learned",
     "title": "Week 2 Notes - Course Introduction",
     "section": "",
-    "text": "[List main concepts from lecture]\n[Technical skills covered]"
+    "text": "Visualization matters: summary statistics can obscure patterns; outliers may represent critical communities.\n\n\nEthical responsibility to report MOE, show uncertainty, and avoid misleading visuals.\n\nGrammar of Graphics (ggplot2):\nData → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.\n\nExploratory Data Analysis (EDA): a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.\n\nData Joins: left, right, inner, and full joins for integrating datasets in policy analysis."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#coding-techniques",
     "href": "weekly-notes/week-03-notes.html#coding-techniques",
     "title": "Week 2 Notes - Course Introduction",
     "section": "Coding Techniques",
-    "text": "Coding Techniques\n\n[New R functions or approaches]\n[Quarto features learned]"
+    "text": "Coding Techniques\n\nggplot2 basics:\n\nStructure: ggplot(data) + aes(x=var1, y=var2) + geom_*() + layers.\n\nAesthetic mappings: x, y, color, fill, size, shape, alpha.\n\nAdding layers with + for customization.\n\n\nEDA tools: histograms, scatterplots, boxplots for detecting distributions and outliers.\n\nData reliability: use coefficient of variation (CV) thresholds to categorize estimates as reliable, somewhat reliable, or unreliable.\n\ndplyr joins: left_join(), right_join(), inner_join(), full_join()."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#questions-challenges",
     "href": "weekly-notes/week-03-notes.html#questions-challenges",
     "title": "Week 2 Notes - Course Introduction",
     "section": "Questions & Challenges",
-    "text": "Questions & Challenges\n\n[What I didn’t fully understand]\n[Areas needing more practice]"
+    "text": "Questions & Challenges\n\nHow to best visualize uncertainty so that policymakers actually understand and act on it.\n\nPractice needed in customizing ggplot themes for clear and professional presentation.\n\nStill clarifying when to collapse categories or aggregate geographies to reduce statistical uncertainty."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#connections-to-policy",
     "href": "weekly-notes/week-03-notes.html#connections-to-policy",
     "title": "Week 2 Notes - Course Introduction",
     "section": "Connections to Policy",
-    "text": "Connections to Policy\n\n[How this week’s content applies to real policy work]"
+    "text": "Connections to Policy\n\nPoor visualization (e.g., ignoring MOEs) can directly misinform policy and harm vulnerable communities.\n\nReporting reliability aligns with the AICP Code of Ethics — transparency is both technical best practice and ethical obligation.\n\nVisualizations tailored for different audiences (legislators, community groups, media) can shift how data drives decisions."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#reflection",
     "href": "weekly-notes/week-03-notes.html#reflection",
     "title": "Week 2 Notes - Course Introduction",
     "section": "Reflection",
-    "text": "Reflection\n\n[What was most interesting]\n[How I’ll apply this knowledge]"
+    "text": "Reflection\n\nThe most interesting insight was Anscombe’s Quartet: identical summary statistics but radically different patterns when visualized — proving the necessity of graphs.\n\nI’ll apply this by always starting analysis with EDA and incorporating data quality checks into my visuals.\n\nThis week reinforced that visualization is not just aesthetic — it is a tool for ethical communication in public policy."
   },
   {
     "objectID": "exercises/exercise_2/week3_lab2/week3_lab_exercise.html",
