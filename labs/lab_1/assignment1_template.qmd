@@ -192,7 +192,6 @@ top5_uncertain <- county_cat %>%
   )
 
 # Format as table with kable() - include appropriate column names and caption
-print("Top 5 Counties by Median Income MOE%:")
 top5_uncertain %>%
   kable(
     col.names = c("County","Median Income","MOE ($)","MOE (%)","Reliability"),
@@ -200,6 +199,7 @@ top5_uncertain %>%
     align     = c("l","r","r","r","l")
   ) %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
+
 ```
 
 **Data Quality Commentary:**
@@ -220,12 +220,31 @@ compare how data quality varies.
 ```{r select-counties}
 # Use filter() to select 2-3 counties from your county_reliability data
 # Store the selected counties in a variable called selected_counties
+county_cat <- county_cat %>% mutate(county_code = substr(GEOID, 3, 5))
+
+selected_counties <- county_cat %>%
+  filter(reliability %in% c("High Confidence","Moderate Confidence","Low Confidence")) %>%
+  group_by(reliability) %>%
+  slice_head(n = 1) %>%
+  ungroup() %>%
+  select(county_code, county_name, med_hh_incomeE, med_hh_incomeM, moe_perc, reliability)
 
 # Display the selected counties with their key characteristics
+selected_counties %>%
+  dplyr::mutate(
+    `Median Income` = paste0("$", format(round(med_hh_incomeE), big.mark=",")),
+    `MOE (%)`       = sprintf("%.1f%%", moe_perc)
+  ) %>%
+  dplyr::select(
+    County = county_name, `Median Income`, `MOE (%)`, Reliability = reliability
+  ) %>%
+  kable(caption = "Selected Counties for Tract-Level Study") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed")) 
+
 # Show: county name, median income, MOE percentage, reliability category
 ```
 
-**Comment on the output:** \[write something :)\]
+**Comment on the output:** Both chosen counties are at the high and moderate confidence levels. The absence of any low confidence counties suggests that county level income is measured with fair stability across the state, though smaller rural places may still sit near the threshold and deserve careful review.
 
 ## 3.2 Tract-Level Demographics
 
@@ -241,14 +260,42 @@ hints.
 
 ```{r tract-demographics}
 # Define your race/ethnicity variables with descriptive names
+race_vars <- c(
+  total    = "B03002_001",
+  white    = "B03002_003",
+  black    = "B03002_004",
+  hispanic = "B03002_012"
+)
 
 # Use get_acs() to retrieve tract-level data
 # Hint: You may need to specify county codes in the county parameter
+selected_codes <- selected_counties$county_code
+
+tract_raw <- get_acs(
+  geography = "tract",
+  state     = my_state,
+  county    = selected_codes,
+  variables = race_vars,
+  year      = 2022,
+  survey    = "acs5",
+  output    = "wide"
+)
 
 # Calculate percentage of each group using mutate()
 # Create percentages for white, Black, and Hispanic populations
-
 # Add readable tract and county name columns using str_extract() or similar
+
+tract_data <- tract_raw %>%
+  mutate(county_code = substr(GEOID, 9, 11)) %>%
+  separate(NAME, into = c("tract_name", "county", "state"),
+           sep = ";\\s*", remove = FALSE, fill = "right") %>%
+  mutate(
+    pct_white   = (100 * whiteE    / totalE),
+    pct_black   = (100 * blackE    / totalE),
+    pct_hisp    = (100 * hispanicE / totalE)
+  ) %>%
+  select(-state)
+
 ```
 
 ## 3.3 Demographic Analysis
@@ -259,10 +306,49 @@ hints.
 # Find the tract with the highest percentage of Hispanic/Latino residents
 # Hint: use arrange() and slice() to get the top tract
 
+top_hispanic_tracts <- tract_data %>%
+  group_by(county) %>%
+  arrange(desc(pct_hisp), .by_group = TRUE) %>%
+  slice(1) %>%
+  ungroup() %>%
+  transmute(
+    Tract = tract_name,
+    County = county,
+    `Pct Hispanic/Latino` = pct_hisp,
+    `Total Pop` = totalE
+  )
+
+top_hispanic_tracts %>%
+  kable(
+    caption   = "Top % Hispanic/Latino Tract in Each Selected County",
+    col.names = c("County","Tract","Pct Hispanic/Latino","Total Pop"),
+    align     = c("l","l","r","r")
+  ) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
+
 # Calculate average demographics by county using group_by() and summarize()
 # Show: number of tracts, average percentage for each racial/ethnic group
 
+county_avgs <- tract_data %>%
+  group_by(county_name) %>%
+  summarise(
+    Tracts = n(),
+    `Avg % White` = mean(pct_white, na.rm = TRUE),
+    `Avg % Black` = mean(pct_black, na.rm = TRUE),
+    `Avg % Hispanic/Latino` = mean(pct_hisp, na.rm = TRUE)
+  ) %>%
+  mutate(
+    `Avg % White`          = sprintf("%.1f%%", `Avg % White`),
+    `Avg % Black`          = sprintf("%.1f%%", `Avg % Black`),
+    `Avg % Hispanic/Latino`= sprintf("%.1f%%", `Avg % Hispanic/Latino`)
+  ) %>%
+  rename(County = county_name)
+
+
 # Create a nicely formatted table of your results using kable()
+knitr::kable(county_avgs,
+             caption = "Average Demographics by County (Selected Counties)")
+
 ```
 
 # Part 4: Comprehensive Data Quality Evaluation
@@ -279,11 +365,28 @@ Create summary statistics
 ```{r demographic-moe}
 # Calculate MOE percentages for white, Black, and Hispanic variables
 # Hint: use the same formula as before (margin/estimate * 100)
-
 # Create a flag for tracts with high MOE on any demographic variable
 # Use logical operators (| for OR) in an ifelse() statement
 
+tract_quality <- tract_demo %>%
+  mutate(
+    moe_pct_white = ifelse(whiteE    > 0, 100 * whiteM    / whiteE,    NA_real_),
+    moe_pct_black = ifelse(blackE    > 0, 100 * blackM    / blackE,    NA_real_),
+    moe_pct_hisp  = ifelse(hispanicE > 0, 100 * hispanicM / hispanicE, NA_real_),
+    high_moe_any  = (moe_pct_white > 15) | (moe_pct_black > 15) | (moe_pct_hisp > 15)
+  )
+
 # Create summary statistics showing how many tracts have data quality issues
+summary_quality <- tract_quality %>%
+  summarise(
+    `Tracts (total)`    = n(),
+    `Tracts (high MOE)` = sum(high_moe_any, na.rm = TRUE),
+    `Share high MOE`    = sprintf("%.1f%%", 100 * `Tracts (high MOE)` / `Tracts (total)`)
+  )
+
+knitr::kable(summary_quality,
+             caption = "Tracts with High MOE (>15%) on Any Demographic Variable")
+
 ```
 
 ## 4.2 Pattern Analysis
@@ -295,9 +398,23 @@ distributed or concentrated in certain types of communities.
 # Group tracts by whether they have high MOE issues
 # Calculate average characteristics for each group:
 # - population size, demographic percentages
-
 # Use group_by() and summarize() to create this comparison
+pattern_tbl <- tract_quality %>%
+  mutate(pop = totalE) %>%
+  group_by(high_moe_any) %>%
+  summarise(
+    Tracts        = n(),
+    `Avg Pop`     = round(mean(pop, na.rm = TRUE)),
+    `Avg % White` = sprintf("%.1f%%", mean(pct_white, na.rm = TRUE)),
+    `Avg % Black` = sprintf("%.1f%%", mean(pct_black, na.rm = TRUE)),
+    `Avg % Hispanic/Latino` = sprintf("%.1f%%", mean(pct_hisp,  na.rm = TRUE))
+  ) %>%
+  mutate(Group = ifelse(high_moe_any, "High MOE (any >15%)", "Not High MOE")) %>%
+  select(Group, everything(), -high_moe_any)
+
 # Create a professional table showing the patterns
+knitr::kable(pattern_tbl, caption = "Comparison of Tracts With/Without High MOE")
+
 ```
 
 **Pattern Analysis:** \[Describe any patterns you observe. Do certain
