@@ -403,14 +403,14 @@
     "href": "weekly-notes/week-03-notes.html",
     "title": "Week 2 Notes - Course Introduction",
     "section": "",
-    "text": "Visualization matters: summary statistics can obscure patterns; outliers may represent critical communities.\n\n\nEthical responsibility to report MOE, show uncertainty, and avoid misleading visuals.\n\nGrammar of Graphics (ggplot2):\nData → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.\n\nExploratory Data Analysis (EDA): a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.\n\nData Joins: left, right, inner, and full joins for integrating datasets in policy analysis."
+    "text": "Visualization matters: summary statistics can obscure patterns; outliers may represent critical communities.\n\nEthical responsibility to report MOE, show uncertainty, and avoid misleading visuals.\n\nGrammar of Graphics (ggplot2):\nData → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.\n\nExploratory Data Analysis (EDA): a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.\n\nData Joins: left, right, inner, and full joins for integrating datasets in policy analysis."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#key-concepts-learned",
     "href": "weekly-notes/week-03-notes.html#key-concepts-learned",
     "title": "Week 2 Notes - Course Introduction",
     "section": "",
-    "text": "Visualization matters: summary statistics can obscure patterns; outliers may represent critical communities.\n\n\nEthical responsibility to report MOE, show uncertainty, and avoid misleading visuals.\n\nGrammar of Graphics (ggplot2):\nData → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.\n\nExploratory Data Analysis (EDA): a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.\n\nData Joins: left, right, inner, and full joins for integrating datasets in policy analysis."
+    "text": "Visualization matters: summary statistics can obscure patterns; outliers may represent critical communities.\n\nEthical responsibility to report MOE, show uncertainty, and avoid misleading visuals.\n\nGrammar of Graphics (ggplot2):\nData → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.\n\nExploratory Data Analysis (EDA): a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.\n\nData Joins: left, right, inner, and full joins for integrating datasets in policy analysis."
   },
   {
     "objectID": "weekly-notes/week-03-notes.html#coding-techniques",

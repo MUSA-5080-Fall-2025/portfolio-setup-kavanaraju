@@ -4,7 +4,7 @@ date: "2025-09-15"
 ---
 
 ## Key Concepts Learned
-- - **Visualization matters:** summary statistics can obscure patterns; outliers may represent critical communities.  
+- **Visualization matters:** summary statistics can obscure patterns; outliers may represent critical communities.  
 - Ethical responsibility to report MOE, show uncertainty, and avoid misleading visuals.  
 - **Grammar of Graphics (ggplot2):**  
   Data → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.  
