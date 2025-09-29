@@ -170,7 +170,7 @@ pa_counties <- pa_counties %>%
 
 # Distance from each county to a specific point
 philadelphia <- pa_counties %>%
-  filter(NAME == "Philadelphia")
+  filter(COUNTY_NAM == "Philadelphia")
 philly_center <- st_centroid(philadelphia)
 
 pa_counties <- pa_counties %>%
