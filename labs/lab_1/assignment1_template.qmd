@@ -468,7 +468,27 @@ implement to address these systematic issues?
 # - Moderate Confidence: "Use with caution - monitor outcomes"  
 # - Low Confidence: "Requires manual review or additional data"
 
+rec_table <- county_cat %>%
+  transmute(
+    County          = county_name,
+    `Median Income` = scales::dollar(round(med_hh_incomeE)),
+    `MOE (%)`       = sprintf("%.2f%%", moe_perc),
+    Reliability     = reliability,
+    Recommendation  = case_when(
+      Reliability == "High Confidence"     ~ "Safe for algorithmic decisions",
+      Reliability == "Moderate Confidence" ~ "Use with caution — monitor outcomes",
+      TRUE                                 ~ "Requires manual review or additional data"
+    )
+  )
+
 # Format as a professional table with kable()
+rec_table %>%
+  knitr::kable(
+    caption = "County-Level Decision Framework for Algorithm Implementation",
+    align   = c("l","r","r","l","l"),
+    col.names = c("County","Median Income","MOE (%)","Reliability","Recommendation")
+  ) %>%
+  kableExtra::kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
 ```
 
 **Key Recommendations:**
