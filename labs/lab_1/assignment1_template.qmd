@@ -433,8 +433,7 @@ tract_pattern %>%
 
 ```
 
-**Pattern Analysis:** \[Describe any patterns you observe. Do certain
-types of communities have less reliable data? What might explain this?\]
+**Pattern Analysis:** In Adams County, nearly all tracts are flagged as high MOE. These tracts average larger populations than the one tract without high MOE, but they also have more racial and ethnic diversity, with higher shares of Black and Hispanic residents. This suggests that subgroup estimates rather than overall population size are driving the reliability issues. In Cameron County, both tracts are high MOE and have very small populations, which reflects the role of sample size in producing unstable estimates. Together, these findings indicate that high MOE is concentrated both in small rural counties and in tracts where minority subgroup populations are relatively small, creating equity risks if algorithms apply thresholds without accounting for uncertainty.
 
 # Part 5: Policy Recommendations
 
