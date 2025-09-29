@@ -405,21 +405,31 @@ distributed or concentrated in certain types of communities.
 # Calculate average characteristics for each group:
 # - population size, demographic percentages
 # Use group_by() and summarize() to create this comparison
-pattern_tbl <- tract_quality %>%
-  mutate(pop = totalE) %>%
-  group_by(high_moe_any) %>%
+
+tract_pattern <- tract_moe %>%
+  mutate(high_moe_any = ifelse(is.na(high_moe_any), FALSE, high_moe_any)) %>%
+  group_by(county, high_moe_any) %>%
   summarise(
-    Tracts        = n(),
-    `Avg Pop`     = round(mean(pop, na.rm = TRUE)),
-    `Avg % White` = sprintf("%.1f%%", mean(pct_white, na.rm = TRUE)),
-    `Avg % Black` = sprintf("%.1f%%", mean(pct_black, na.rm = TRUE)),
-    `Avg % Hispanic/Latino` = sprintf("%.1f%%", mean(pct_hisp,  na.rm = TRUE))
+    Tracts                 = n(),
+    `Avg Pop`              = mean(totalE, na.rm = TRUE),
+    `Avg % White`          = mean(pct_white, na.rm = TRUE),
+    `Avg % Black`          = mean(pct_black, na.rm = TRUE),
+    `Avg % Hispanic/Latino`= mean(pct_hisp,  na.rm = TRUE),
+    .groups = "drop_last"
   ) %>%
-  mutate(Group = ifelse(high_moe_any, "High MOE (any >15%)", "Not High MOE")) %>%
-  select(Group, everything(), -high_moe_any)
+  mutate(Group = if_else(high_moe_any, "High-MOE tracts", "Other tracts")) %>%
+  ungroup() %>%
+  rename(County = county) %>%
+  select(County, Group, Tracts, `Avg Pop`, `Avg % White`, `Avg % Black`, `Avg % Hispanic/Latino`)
 
 # Create a professional table showing the patterns
-knitr::kable(pattern_tbl, caption = "Comparison of Tracts With/Without High MOE")
+tract_pattern %>%
+  kable(
+    caption = "Comparing Tracts With vs. Without High MOE (Any Demographic Variable)",
+    digits  = c(NA,NA, 0, 0, 2, 2, 2),
+    align   = c("l","l","r","r","r","r","r")
+  ) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
 
 ```
 
