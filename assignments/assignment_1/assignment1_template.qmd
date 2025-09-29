@@ -80,7 +80,7 @@ library(scales)
 library(kableExtra)
 
 # Set your Census API key
-census_api_key(Sys.getenv("52f0462d8b4e1e19ee64b25a3196677c5e32e660"))
+census_api_key(Sys.getenv("CENSUS_API_KEY"), install = FALSE, overwrite = FALSE)
 
 # Choose your state for analysis - assign it to a variable called my_state
 my_state <- "PA"
@@ -528,7 +528,7 @@ Monroe, Montgomery, Northampton, Northumberland, Perry, Philadelphia, Pike, Pott
 09/23/2025. 
 
 **Reproducibility:** - All analysis conducted in R version 4.4.1 - Census API key required for replication - Complete code and
-documentation available at: \[your portfolio URL\]
+documentation available at: https://musa-5080-fall-2025.github.io/portfolio-setup-kavanaraju/assignments/assignment_1/assignment1_template.html
 
 **Methodology Notes:** Reliability categories were defined using relative margins of error. Counties were selected to represent different reliability levels. Tracts were flagged as high MOE if any race or ethnicity variable exceeded a 15 percent margin of error.
 

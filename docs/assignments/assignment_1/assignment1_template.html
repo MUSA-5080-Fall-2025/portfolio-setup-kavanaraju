@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kavana Raju">
-<meta name="dcterms.date" content="2025-09-28">
+<meta name="dcterms.date" content="2025-09-29">
 
 <title>Assignment 1: Census Data Quality for Policy Decisions – Kavana Raju - MUSA 5080 Portfolio</title>
 <style>
@@ -246,7 +246,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 28, 2025</p>
+      <p class="date">September 29, 2025</p>
     </div>
   </div>
   
@@ -305,7 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Set your Census API key</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">census_api_key</span>(<span class="fu">Sys.getenv</span>(<span class="st">"52f0462d8b4e1e19ee64b25a3196677c5e32e660"</span>))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">census_api_key</span>(<span class="fu">Sys.getenv</span>(<span class="st">"CENSUS_API_KEY"</span>), <span class="at">install =</span> <span class="cn">FALSE</span>, <span class="at">overwrite =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Choose your state for analysis - assign it to a variable called my_state</span></span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>my_state <span class="ot">&lt;-</span> <span class="st">"PA"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1394,7 +1394,7 @@ Monroe, Montgomery, Northampton, Northumberland, Perry, Philadelphia, Pike, Pott
 <section id="technical-notes" class="level1">
 <h1>Technical Notes</h1>
 <p><strong>Data Sources:</strong> - U.S. Census Bureau, American Community Survey 2018-2022 5-Year Estimates - Retrieved via tidycensus R package on 09/23/2025.</p>
-<p><strong>Reproducibility:</strong> - All analysis conducted in R version 4.4.1 - Census API key required for replication - Complete code and documentation available at: [your portfolio URL]</p>
+<p><strong>Reproducibility:</strong> - All analysis conducted in R version 4.4.1 - Census API key required for replication - Complete code and documentation available at: https://musa-5080-fall-2025.github.io/portfolio-setup-kavanaraju/assignments/assignment_1/assignment1_template.html</p>
 <p><strong>Methodology Notes:</strong> Reliability categories were defined using relative margins of error. Counties were selected to represent different reliability levels. Tracts were flagged as high MOE if any race or ethnicity variable exceeded a 15 percent margin of error.</p>
 <p><strong>Limitations:</strong> Margins of error are especially large at small geographic scales and for subgroup estimates, making tract level analysis more uncertain. This work uses one ACS release and does not test temporal consistency. Only a subset of variables was analyzed, and nonresponse patterns in ACS may add further bias not captured by MOE.</p>
 <hr>
