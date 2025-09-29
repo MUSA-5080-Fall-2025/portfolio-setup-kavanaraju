@@ -368,7 +368,7 @@ Create summary statistics
 # Create a flag for tracts with high MOE on any demographic variable
 # Use logical operators (| for OR) in an ifelse() statement
 
-tract_quality <- tract_demo %>%
+tract_moe <- tract_data %>%
   mutate(
     moe_pct_white = ifelse(whiteE    > 0, 100 * whiteM    / whiteE,    NA_real_),
     moe_pct_black = ifelse(blackE    > 0, 100 * blackM    / blackE,    NA_real_),
@@ -377,15 +377,21 @@ tract_quality <- tract_demo %>%
   )
 
 # Create summary statistics showing how many tracts have data quality issues
-summary_quality <- tract_quality %>%
+summary_tract_moe <- tract_moe %>%
+  group_by(county) %>%
   summarise(
     `Tracts (total)`    = n(),
     `Tracts (high MOE)` = sum(high_moe_any, na.rm = TRUE),
-    `Share high MOE`    = sprintf("%.1f%%", 100 * `Tracts (high MOE)` / `Tracts (total)`)
+    `Share high MOE`    = sprintf("%.2f%%", 100 * `Tracts (high MOE)` / `Tracts (total)`)
   )
 
-knitr::kable(summary_quality,
-             caption = "Tracts with High MOE (>15%) on Any Demographic Variable")
+summary_tract_moe %>%
+  kable(
+    col.names = c("County","Tracts","High MOE","Share high MOE"),
+    caption   = "High-MOE Tracts by County",
+    align     = c("l","r","r","r")
+  ) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
 
 ```
 
