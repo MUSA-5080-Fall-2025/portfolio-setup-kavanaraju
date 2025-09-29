@@ -29,9 +29,22 @@ census_tracts <- tracts(state = "PA", cb = TRUE)
 census_tracts <- census_tracts %>%
   st_transform(st_crs(pa_counties))
 
+####
+tigris_cache_dir("week-04/data")
+
+options(
+  tigris_use_cache = TRUE,
+  tigris_class = "sf",
+  timeout = 600
+)
+####
+
 # Get urban areas (Census Bureau definition)
 # These are areas with 2,500+ people
-metro_areas <- core_based_statistical_areas(cb = TRUE)
+#metro_areas <- core_based_statistical_areas(cb = TRUE)
+
+###NOT WORKING
+metro_areas <- st_read("data/tl_2025_us_cbsa/tl_2025_us_cbsa.shp")
 metro_areas <- metro_areas %>%
   st_transform(st_crs(pa_counties))
 
