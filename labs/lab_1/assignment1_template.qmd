@@ -12,46 +12,64 @@ format:
 execute:
   warning: false
   message: false
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 # Assignment Overview
 
 ## Scenario
 
-You are a data analyst for the **Pennsylvania Department of Human Services**. The department is considering implementing an algorithmic system to identify communities that should receive priority for social service funding and outreach programs. Your supervisor has asked you to evaluate the quality and reliability of available census data to inform this decision.
+You are a data analyst for the **Pennsylvania Department of Human
+Services**. The department is considering implementing an algorithmic
+system to identify communities that should receive priority for social
+service funding and outreach programs. Your supervisor has asked you to
+evaluate the quality and reliability of available census data to inform
+this decision.
 
-Drawing on our Week 2 discussion of algorithmic bias, you need to assess not just what the data shows, but how reliable it is and what communities might be affected by data quality issues.
+Drawing on our Week 2 discussion of algorithmic bias, you need to assess
+not just what the data shows, but how reliable it is and what
+communities might be affected by data quality issues.
 
 ## Learning Objectives
 
-- Apply dplyr functions to real census data for policy analysis
-- Evaluate data quality using margins of error 
-- Connect technical analysis to algorithmic decision-making
-- Identify potential equity implications of data reliability issues
-- Create professional documentation for policy stakeholders
+-   Apply dplyr functions to real census data for policy analysis
+-   Evaluate data quality using margins of error
+-   Connect technical analysis to algorithmic decision-making
+-   Identify potential equity implications of data reliability issues
+-   Create professional documentation for policy stakeholders
 
 ## Submission Instructions
 
-**Submit by posting your updated portfolio link on Canvas.** Your assignment should be accessible at `your-portfolio-url/assignments/assignment_1/`
+**Submit by posting your updated portfolio link on Canvas.** Your
+assignment should be accessible at
+`your-portfolio-url/assignments/assignment_1/`
 
-Make sure to update your `_quarto.yml` navigation to include this assignment under an "Assignments" menu.
+Make sure to update your `_quarto.yml` navigation to include this
+assignment under an "Assignments" menu.
 
 # Part 1: Portfolio Integration
 
-Create this assignment in your portfolio repository under an `assignments/assignment_1/` folder structure. Update your navigation menu to include:
+Create this assignment in your portfolio repository under an
+`assignments/assignment_1/` folder structure. Update your navigation
+menu to include:
 
-```
+```         
 - text: Assignments
   menu:
     - href: assignments/assignment_1/your_file_name.qmd
       text: "Assignment 1: Census Data Exploration"
 ```
-If there is a special character like comma, you need use double quote mark so that the quarto can identify this as text
+
+If there is a special character like comma, you need use double quote
+mark so that the quarto can identify this as text
 
 # Setup
 
 ```{r setup}
 # Load required packages (hint: you need tidycensus, tidyverse, and knitr)
+library(dplyr)
 library(tidycensus)
 library(tidyverse)
 library(sf)
@@ -59,6 +77,7 @@ library(tigris)
 library(knitr)
 library(stringr)
 library(scales)
+library(kableExtra)
 
 # Set your Census API key
 census_api_key(Sys.getenv("52f0462d8b4e1e19ee64b25a3196677c5e32e660"))
@@ -68,50 +87,83 @@ my_state <- "PA"
 
 ```
 
-**State Selection:** I have chosen **Pennsylvania** for this analysis because: [Brief explanation of why you chose this state]
+**State Selection:** I have chosen **Pennsylvania** for this analysis
+because: the scenario explicitly involves the Pennsylvania Department of
+Human Services, and PA's mix of urban, suburban, and rural counties
+provides useful variation in ACS reliability for evaluating algorithmic
+decisions.
 
 # Part 2: County-Level Resource Assessment
 
 ## 2.1 Data Retrieval
 
-**Your Task:** Use `get_acs()` to retrieve county-level data for your chosen state.
+**Your Task:** Use `get_acs()` to retrieve county-level data for your
+chosen state.
 
-**Requirements:**
-- Geography: county level
-- Variables: median household income (B19013_001) and total population (B01003_001)  
-- Year: 2022
-- Survey: acs5
-- Output format: wide
+**Requirements:** - Geography: county level - Variables: median
+household income (B19013_001) and total population (B01003_001)\
+- Year: 2022 - Survey: acs5 - Output format: wide
 
-**Hint:** Remember to give your variables descriptive names using the `variables = c(name = "code")` syntax.
+**Hint:** Remember to give your variables descriptive names using the
+`variables = c(name = "code")` syntax.
 
 ```{r county-data}
 # Write your get_acs() code here
+county_vars = c(
+  med_hh_income = "B19013_001",
+  total_pop = "B01003_001"
+  )
 
-# Clean the county names to remove state name and "County" 
+county_data <- get_acs(
+  geography = "county",
+  state = my_state,
+  year = 2022,
+  survey = "acs5",
+  variables = county_vars,
+  output = "wide",
+)
+
+# Clean the county names to remove state name and "County"
+county_data <- county_data %>%
+  mutate(county_name = str_remove(NAME, paste0(", ", "Pennsylvania")) %>%
+           str_remove("County")
+  )
+  
 # Hint: use mutate() with str_remove()
 
 # Display the first few rows
+head(county_data)
+
+glimpse(county_data)
 ```
 
 ## 2.2 Data Quality Assessment
 
-**Your Task:** Calculate margin of error percentages and create reliability categories.
+**Your Task:** Calculate margin of error percentages and create
+reliability categories.
 
-**Requirements:**
-- Calculate MOE percentage: (margin of error / estimate) * 100
-- Create reliability categories:
-  - High Confidence: MOE < 5%
-  - Moderate Confidence: MOE 5-10%  
-  - Low Confidence: MOE > 10%
-- Create a flag for unreliable estimates (MOE > 10%)
+**Requirements:** - Calculate MOE percentage: (margin of error /
+estimate) \* 100 - Create reliability categories: - High Confidence: MOE
+\< 5% - Moderate Confidence: MOE 5-10%\
+- Low Confidence: MOE \> 10% - Create a flag for unreliable estimates
+(MOE \> 10%)
 
 **Hint:** Use `mutate()` with `case_when()` for the categories.
 
 ```{r income-reliability}
 # Calculate MOE percentage and reliability categories using mutate()
+county_cat <- county_data %>%
+  mutate(moe_perc = ((med_hh_incomeM / med_hh_incomeE) * 100) , 
+           reliability = case_when(moe_perc < 5 ~ "High Confidence", 
+                                   moe_perc < 10 ~ "Moderate Confidence",
+                                   TRUE ~ "Low Confidence")
+         )
 
 # Create a summary showing count of counties in each reliability category
+county_cat %>%
+  count(reliability, name = "count") %>%
+  mutate(share = scales::percent(count / sum(count)))
+
 # Hint: use count() and mutate() to add percentages
 ```
 
@@ -119,31 +171,51 @@ my_state <- "PA"
 
 **Your Task:** Identify the 5 counties with the highest MOE percentages.
 
-**Requirements:**
-- Sort by MOE percentage (highest first)
-- Select the top 5 counties
-- Display: county name, median income, margin of error, MOE percentage, reliability category
-- Format as a professional table using `kable()`
+**Requirements:** - Sort by MOE percentage (highest first) - Select the
+top 5 counties - Display: county name, median income, margin of error,
+MOE percentage, reliability category - Format as a professional table
+using `kable()`
 
 **Hint:** Use `arrange()`, `slice()`, and `select()` functions.
 
 ```{r high-uncertainty}
 # Create table of top 5 counties by MOE percentage
+top5_uncertain <- county_cat %>%
+  arrange(desc(moe_perc)) %>%
+  slice(1:5) %>%
+  transmute(
+    county        = county_name,
+    median_income = paste0("$", format(round(med_hh_incomeE), big.mark=",")),
+    moe_dollars   = paste0("$", format(round(med_hh_incomeM), big.mark=",")),
+    moe_percent   = sprintf("%.1f%%", moe_perc),
+    reliability
+  )
 
 # Format as table with kable() - include appropriate column names and caption
+print("Top 5 Counties by Median Income MOE%:")
+top5_uncertain %>%
+  kable(
+    col.names = c("County","Median Income","MOE ($)","MOE (%)","Reliability"),
+    caption   = "Top 5 Counties by Median Income MOE% (Highest First)",
+    align     = c("l","r","r","r","l")
+  ) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped","hover","condensed"))
 ```
 
 **Data Quality Commentary:**
 
-[Write 2-3 sentences explaining what these results mean for algorithmic decision-making. Consider: Which counties might be poorly served by algorithms that rely on this income data? What factors might contribute to higher uncertainty?]
+Across Pennsylvania, the counties with the largest income MOE are small counties such as Forest, Sullivan, Union, Montour, and Elk, with MOE between 6% and 10%. If an algorithm ranks counties by median income without accounting for this uncertainty, these counties can be misclassified because of sampling error and may cross decision thresholds incorrectly. Because they have smaller populations, they should be treated with caution and considered for manual review or aggregation to larger geographies.
 
 # Part 3: Neighborhood-Level Analysis
 
 ## 3.1 Focus Area Selection
 
-**Your Task:** Select 2-3 counties from your reliability analysis for detailed tract-level study.
+**Your Task:** Select 2-3 counties from your reliability analysis for
+detailed tract-level study.
 
-**Strategy:** Choose counties that represent different reliability levels (e.g., 1 high confidence, 1 moderate, 1 low confidence) to compare how data quality varies.
+**Strategy:** Choose counties that represent different reliability
+levels (e.g., 1 high confidence, 1 moderate, 1 low confidence) to
+compare how data quality varies.
 
 ```{r select-counties}
 # Use filter() to select 2-3 counties from your county_reliability data
@@ -153,18 +225,19 @@ my_state <- "PA"
 # Show: county name, median income, MOE percentage, reliability category
 ```
 
-**Comment on the output:** [write something :)]
+**Comment on the output:** \[write something :)\]
 
 ## 3.2 Tract-Level Demographics
 
-**Your Task:** Get demographic data for census tracts in your selected counties.
+**Your Task:** Get demographic data for census tracts in your selected
+counties.
 
-**Requirements:**
-- Geography: tract level
-- Variables: white alone (B03002_003), Black/African American (B03002_004), Hispanic/Latino (B03002_012), total population (B03002_001)
-- Use the same state and year as before
-- Output format: wide
-- **Challenge:** You'll need county codes, not names. Look at the GEOID patterns in your county data for hints.
+**Requirements:** - Geography: tract level - Variables: white alone
+(B03002_003), Black/African American (B03002_004), Hispanic/Latino
+(B03002_012), total population (B03002_001) - Use the same state and
+year as before - Output format: wide - **Challenge:** You'll need county
+codes, not names. Look at the GEOID patterns in your county data for
+hints.
 
 ```{r tract-demographics}
 # Define your race/ethnicity variables with descriptive names
@@ -196,12 +269,12 @@ my_state <- "PA"
 
 ## 4.1 MOE Analysis for Demographic Variables
 
-**Your Task:** Examine margins of error for demographic variables to see if some communities have less reliable data.
+**Your Task:** Examine margins of error for demographic variables to see
+if some communities have less reliable data.
 
-**Requirements:**
-- Calculate MOE percentages for each demographic variable
-- Flag tracts where any demographic variable has MOE > 15%
-- Create summary statistics
+**Requirements:** - Calculate MOE percentages for each demographic
+variable - Flag tracts where any demographic variable has MOE \> 15% -
+Create summary statistics
 
 ```{r demographic-moe}
 # Calculate MOE percentages for white, Black, and Hispanic variables
@@ -215,7 +288,8 @@ my_state <- "PA"
 
 ## 4.2 Pattern Analysis
 
-**Your Task:** Investigate whether data quality problems are randomly distributed or concentrated in certain types of communities.
+**Your Task:** Investigate whether data quality problems are randomly
+distributed or concentrated in certain types of communities.
 
 ```{r pattern-analysis}
 # Group tracts by whether they have high MOE issues
@@ -226,24 +300,27 @@ my_state <- "PA"
 # Create a professional table showing the patterns
 ```
 
-**Pattern Analysis:** [Describe any patterns you observe. Do certain types of communities have less reliable data? What might explain this?]
-
+**Pattern Analysis:** \[Describe any patterns you observe. Do certain
+types of communities have less reliable data? What might explain this?\]
 
 # Part 5: Policy Recommendations
 
 ## 5.1 Analysis Integration and Professional Summary
 
-**Your Task:** Write an executive summary that integrates findings from all four analyses.
+**Your Task:** Write an executive summary that integrates findings from
+all four analyses.
 
-**Executive Summary Requirements:**
-1. **Overall Pattern Identification**: What are the systematic patterns across all your analyses?
-2. **Equity Assessment**: Which communities face the greatest risk of algorithmic bias based on your findings?
-3. **Root Cause Analysis**: What underlying factors drive both data quality issues and bias risk?
-4. **Strategic Recommendations**: What should the Department implement to address these systematic issues?
+**Executive Summary Requirements:** 1. **Overall Pattern
+Identification**: What are the systematic patterns across all your
+analyses? 2. **Equity Assessment**: Which communities face the greatest
+risk of algorithmic bias based on your findings? 3. **Root Cause
+Analysis**: What underlying factors drive both data quality issues and
+bias risk? 4. **Strategic Recommendations**: What should the Department
+implement to address these systematic issues?
 
 **Executive Summary:**
 
-[Your integrated 4-paragraph summary here]
+\[Your integrated 4-paragraph summary here\]
 
 ## 6.3 Specific Recommendations
 
@@ -263,47 +340,58 @@ my_state <- "PA"
 
 **Key Recommendations:**
 
-**Your Task:** Use your analysis results to provide specific guidance to the department.
+**Your Task:** Use your analysis results to provide specific guidance to
+the department.
 
-1. **Counties suitable for immediate algorithmic implementation:** [List counties with high confidence data and explain why they're appropriate]
+1.  **Counties suitable for immediate algorithmic implementation:**
+    \[List counties with high confidence data and explain why they're
+    appropriate\]
 
-2. **Counties requiring additional oversight:** [List counties with moderate confidence data and describe what kind of monitoring would be needed]
+2.  **Counties requiring additional oversight:** \[List counties with
+    moderate confidence data and describe what kind of monitoring would
+    be needed\]
 
-3. **Counties needing alternative approaches:** [List counties with low confidence data and suggest specific alternatives - manual review, additional surveys, etc.]
+3.  **Counties needing alternative approaches:** \[List counties with
+    low confidence data and suggest specific alternatives - manual
+    review, additional surveys, etc.\]
 
 ## Questions for Further Investigation
 
-[List 2-3 questions that your analysis raised that you'd like to explore further in future assignments. Consider questions about spatial patterns, time trends, or other demographic factors.]
+\[List 2-3 questions that your analysis raised that you'd like to
+explore further in future assignments. Consider questions about spatial
+patterns, time trends, or other demographic factors.\]
 
 # Technical Notes
 
-**Data Sources:** 
-- U.S. Census Bureau, American Community Survey 2018-2022 5-Year Estimates
-- Retrieved via tidycensus R package on [date]
+**Data Sources:** - U.S. Census Bureau, American Community Survey
+2018-2022 5-Year Estimates - Retrieved via tidycensus R package on
+\[date\]
 
-**Reproducibility:** 
-- All analysis conducted in R version [your version]
-- Census API key required for replication
-- Complete code and documentation available at: [your portfolio URL]
+**Reproducibility:** - All analysis conducted in R version \[your
+version\] - Census API key required for replication - Complete code and
+documentation available at: \[your portfolio URL\]
 
-**Methodology Notes:**
-[Describe any decisions you made about data processing, county selection, or analytical choices that might affect reproducibility]
+**Methodology Notes:** \[Describe any decisions you made about data
+processing, county selection, or analytical choices that might affect
+reproducibility\]
 
-**Limitations:**
-[Note any limitations in your analysis - sample size issues, geographic scope, temporal factors, etc.]
+**Limitations:** \[Note any limitations in your analysis - sample size
+issues, geographic scope, temporal factors, etc.\]
 
----
+------------------------------------------------------------------------
 
 ## Submission Checklist
 
 Before submitting your portfolio link on Canvas:
 
-- [ ] All code chunks run without errors
-- [ ] All "[Fill this in]" prompts have been completed
-- [ ] Tables are properly formatted and readable
-- [ ] Executive summary addresses all four required components
-- [ ] Portfolio navigation includes this assignment
-- [ ] Census API key is properly set 
-- [ ] Document renders correctly to HTML
+-   [ ] All code chunks run without errors
+-   [ ] All "\[Fill this in\]" prompts have been completed
+-   [ ] Tables are properly formatted and readable
+-   [ ] Executive summary addresses all four required components
+-   [ ] Portfolio navigation includes this assignment
+-   [ ] Census API key is properly set
+-   [ ] Document renders correctly to HTML
 
-**Remember:** Submit your portfolio URL on Canvas, not the file itself. Your assignment should be accessible at `your-portfolio-url/assignments/assignment_1/your_file_name.html`
+**Remember:** Submit your portfolio URL on Canvas, not the file itself.
+Your assignment should be accessible at
+`your-portfolio-url/assignments/assignment_1/your_file_name.html`
