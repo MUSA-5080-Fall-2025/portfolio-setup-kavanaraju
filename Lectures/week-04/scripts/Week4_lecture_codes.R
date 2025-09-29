@@ -179,6 +179,7 @@ pa_counties <- pa_counties %>%
       st_centroid(.), philly_center
     )) / 1000  # Convert to kilometers
   )
+##Error - first remove philly? are accept distance = 0
 
 # 10km buffer around all hospitals
 hospitals_projected <- hospitals %>%
@@ -217,11 +218,11 @@ pa_tracts_data <- get_acs(
 )
 
 # Join demographic data to tract boundaries
-tracts <- tracts %>%
+census_tracts <- census_tracts %>%
   left_join(pa_tracts_data, by = "GEOID")
 
 # Identify vulnerable populations (low-income tracts)
-low_income_tracts <- tracts %>%
+low_income_tracts <- census_tracts %>%
   filter(median_incomeE < 40000)
 
 low_income_tracts  <- low_income_tracts  %>%
@@ -250,7 +251,6 @@ access_summary <- low_income_tracts %>%
 
 print(access_summary)
 
-
 # st_union Example: Combine all tracts in a county into county boundary
 allegheny_boundary<- tracts_in_allegheny %>%
   st_union() 
@@ -271,10 +271,10 @@ p2 <- ggplot() +
 p1 | p2
 
 districts <- districts %>%
-  st_transform(st_crs(tracts))
+  st_transform(st_crs(census_tracts))
 
 # Average income by congressional district
-tracts_by_district <- tracts %>%
+tracts_by_district <- census_tracts %>%
   st_join(districts) %>%
   st_drop_geometry() %>%
   group_by(OBJECTID) %>%
@@ -287,6 +287,7 @@ tracts_by_district <- tracts %>%
 # Join back to district boundaries
 districts_with_data <- districts %>%
   left_join(tracts_by_district, by = "OBJECTID")
+
 
 ggplot(districts_with_data) +
   geom_sf(aes(fill = total_population), color = "white") +
