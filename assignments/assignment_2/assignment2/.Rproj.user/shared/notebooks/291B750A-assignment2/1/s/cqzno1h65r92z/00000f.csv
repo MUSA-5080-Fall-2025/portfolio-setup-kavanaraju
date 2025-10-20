@@ -1,0 +1,18 @@
+"0","# Get demographic data from ACS
+tract_ages <- get_acs(
+  geography = ""tract"",
+  variables = c(
+    ""B01001_020E"", ""B01001_021E"", ""B01001_022E"",
+    ""B01001_023E"", ""B01001_024E"", ""B01001_025E"",
+    ""B01001_044E"", ""B01001_045E"", ""B01001_046E"",
+    ""B01001_047E"", ""B01001_048E"", ""B01001_049E""
+  ),
+  state = ""PA"",
+  year = 2020,
+  output = ""wide""
+)
+"
+"2","Getting data from the 2016-2020 5-year ACS
+"
+"2","Using FIPS code '42' for state 'PA'
+"

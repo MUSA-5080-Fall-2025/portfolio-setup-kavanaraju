@@ -48,22 +48,42 @@ Load the required spatial data:
 **Your Task:**
 ```{r}
 # Load required packages
-
+library(tidycensus)
+library(tidyverse)
+library(tigris)
+library(scales)
+library(sf)
+library(knitr)
+library(patchwork)
+library(here)
 
 # Load spatial data
+pa_counties <- st_read("./data/Pennsylvania_County_Boundaries.shp", quiet = TRUE)
+hospitals <- st_read("./data/hospitals.geojson", quiet = TRUE)
+census_tracts <- tracts(state = "PA", cb = TRUE, progress_bar = FALSE)
 
+# Check that all data loaded correctly #####1
+glimpse(pa_counties)
+glimpse(hospitals)
+glimpse(census_tracts)
 
-
-
-# Check that all data loaded correctly
-
+st_crs(pa_counties)
+st_crs(hospitals)
+st_crs(hospitals)
 
 ```
 
 **Questions to answer:**
 - How many hospitals are in your dataset?
+  - 223 hospitals.
+
 - How many census tracts?
+  - 3445 census tracts.
+  
 - What coordinate reference system is each dataset in?
+  - PA county boundaries CRS: GCS WGS 84 (Pseudo-Mercator) / EPSG 4326. 
+  - PA census tracts CRS: PCS NAD 83 / EPSG 4269.
+  - PA hospitals CRS: GCS WGS 84 (Pseudo-Mercator) / EPSG 4326.
 
 ---
 
@@ -79,9 +99,18 @@ Use `tidycensus` to download tract-level demographic data for Pennsylvania.
 **Your Task:**
 ```{r}
 # Get demographic data from ACS
-
-
-
+tract_ages <- get_acs(
+  geography = "tract",
+  variables = c(
+    "B01001_020E", "B01001_021E", "B01001_022E",
+    "B01001_023E", "B01001_024E", "B01001_025E",
+    "B01001_044E", "B01001_045E", "B01001_046E",
+    "B01001_047E", "B01001_048E", "B01001_049E"
+  ),
+  state = "PA",
+  year = 2020,
+  output = "wide"
+)
 
 # Join to tract boundaries
 
