@@ -1,26 +1,26 @@
 {
-    "id": "88CC7694",
+    "id": "72B159E9",
     "path": "C:/Users/kavan/OneDrive - PennO365/CPLN FALL 2025/CPLN 5920_Public Policy Analytics/portfolio-setup-kavanaraju/assignments/assignment_2/assignment2/assignment2.qmd",
     "project_path": "assignment2.qmd",
     "type": "quarto_markdown",
-    "hash": "0",
+    "hash": "2496029209",
     "contents": "",
-    "dirty": false,
-    "created": 1760929631186.0,
+    "dirty": true,
+    "created": 1760973732215.0,
     "source_on_save": false,
     "relative_order": 1,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "6,7",
-        "scrollLine": "0"
+        "cursorPosition": "71,17",
+        "scrollLine": "55"
     },
     "folds": "",
     "lastKnownWriteTime": 1760934060,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1760934060622,
+    "last_content_update": 1760974543703,
     "read_only": false,
     "read_only_alternatives": []
 }
