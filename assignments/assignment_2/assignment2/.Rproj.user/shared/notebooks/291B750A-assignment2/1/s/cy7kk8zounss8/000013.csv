@@ -1,0 +1,22 @@
+"0","# Create distribution visualization
+tracts_with_data %>%
+  st_drop_geometry() %>%
+  filter(vulnerable == TRUE) %>%
+  ggplot(aes(x = dist_to_hospital)) +
+  geom_histogram(bins = 30, fill = ""#08306b"", color = ""white"") +
+  geom_vline(xintercept = 15, linetype = ""dashed"", color = ""red"", size = 1) +
+  labs(
+    title = ""Distance to Nearest Hospital for Vulnerable Tracts"",
+    x = ""Distance (miles)"",
+    y = ""Number of Vulnerable Tracts"",
+    caption = ""Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nDashed line shows 15-mile threshold used to define underserved.\nThere is a clustering of tracts with relatively close hospital access (<15 miles) and a very long tail beyond the 15 mile cutoff.""
+  ) +
+  theme_minimal()
+"
+"2","Warning in gzfile(file, ""wb"") :"
+"2","
+ "
+"2"," cannot open compressed file 'C:/Users/kavan/OneDrive - PennO365/CPLN FALL 2025/CPLN 5920_Public Policy Analytics/portfolio-setup-kavanaraju/assignments/assignment_2/assignment2/.Rproj.user/shared/notebooks/291B750A-assignment2/1/BC724725e168999f/cy7kk8zounss8_t/4e75344836f94422ac0b32355b256d4f.snapshot', probable reason 'No such file or directory'
+"
+"2","Error in gzfile(file, ""wb"") : cannot open the connection
+"

@@ -1,0 +1,40 @@
+"0","# Create detailed tract-level map
+ggplot() +
+  geom_sf(data = tracts_with_data, 
+          fill = ""gray85"", 
+          color = ""white"", 
+          size = 0.1) +
+  geom_sf(data = tracts_with_data %>% filter(underserved == TRUE), 
+          fill = ""red"",
+          color = ""white"", 
+          size = 0.1) +
+  geom_sf(data = pa_counties, 
+          fill = NA, 
+          color = ""black"", 
+          size = 0.5) +
+  # Hospital locations
+  geom_sf(data = hospitals, 
+          color = ""#08306b"", 
+          size = 1, 
+          alpha = 0.75,
+          shape = 1) +
+  labs(
+    title = ""Underserved Vulnerable Census Tracts in Pennsylvania"",
+    subtitle = ""Red areas show vulnerable tracts where the center is more than 15 miles from the nearest hospital"",
+    caption = ""Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nBlue crosses indicate hospital locations""
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(face = ""bold"", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10)),
+    plot.caption = element_text(size = 8, hjust = 0, margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+"
+"2","Warning in gzfile(file, ""wb"") :"
+"2","
+ "
+"2"," cannot open compressed file 'C:/Users/kavan/OneDrive - PennO365/CPLN FALL 2025/CPLN 5920_Public Policy Analytics/portfolio-setup-kavanaraju/assignments/assignment_2/assignment2/.Rproj.user/shared/notebooks/291B750A-assignment2/1/BC724725e168999f/cprbkl6187o2a_t/c9cf7276a0f54b95b2567a30b06b741b.snapshot', probable reason 'No such file or directory'
+"
+"2","Error in gzfile(file, ""wb"") : cannot open the connection
+"

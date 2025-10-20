@@ -28,5 +28,26 @@
   },
   "assignments/assignment_1/assignment1_template.qmd": {
     "assignment1_template.html": "773a9586"
+  },
+  "assignments/assignment_2/assignment2/assignment2.qmd": {
+    "assignment2.html": "437e3568"
+  },
+  "Lectures/week-01-intro/musa5080_week1_slides.qmd": {
+    "musa5080_week1_slides.html": "b4e61acf"
+  },
+  "Lectures/week-01-intro/week1_lecture_slides.qmd": {
+    "week1_lecture_slides.html": "5bab31a1"
+  },
+  "Lectures/week-02/lectures/week2_slides.qmd": {
+    "week2_slides.html": "09f6d650"
+  },
+  "Lectures/week-03/lecture/week3.qmd": {
+    "week3.html": "cb108b27"
+  },
+  "Lectures/week-03/scrips/week3_lab_exercise.qmd": {
+    "week3_lab_exercise.html": "54fc0b50"
+  },
+  "Lectures/week-04/lecture/week4_slides.qmd": {
+    "week4_slides.html": "1f49a7e3"
   }
 }

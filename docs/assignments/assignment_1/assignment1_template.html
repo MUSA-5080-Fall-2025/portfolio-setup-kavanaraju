@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kavana Raju">
-<meta name="dcterms.date" content="2025-09-29">
+<meta name="dcterms.date" content="2025-10-20">
 
 <title>Assignment 1: Census Data Quality for Policy Decisions – Kavana Raju - MUSA 5080 Portfolio</title>
 <style>
@@ -164,6 +164,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../assignments/assignment_1/assignment1_template.html">
  <span class="dropdown-text">Assignment 1: Census Data Exploration</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../assignments/assignment_2/assignment2/assignment2.html">
+ <span class="dropdown-text">Assignment 2:Spatial Analysis and Visualization</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -185,7 +189,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#scenario" id="toc-scenario" class="nav-link" data-scroll-target="#scenario">Scenario</a></li>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#submission-instructions" id="toc-submission-instructions" class="nav-link" data-scroll-target="#submission-instructions">Submission Instructions</a></li>
   </ul></li>
   <li><a href="#part-1-portfolio-integration" id="toc-part-1-portfolio-integration" class="nav-link" data-scroll-target="#part-1-portfolio-integration">Part 1: Portfolio Integration</a></li>
   <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
@@ -246,7 +249,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 29, 2025</p>
+      <p class="date">October 20, 2025</p>
     </div>
   </div>
   
@@ -275,15 +278,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Create professional documentation for policy stakeholders</li>
 </ul>
 </section>
-<section id="submission-instructions" class="level2">
-<h2 class="anchored" data-anchor-id="submission-instructions">Submission Instructions</h2>
-<p><strong>Submit by posting your updated portfolio link on Canvas.</strong> Your assignment should be accessible at <code>your-portfolio-url/assignments/assignment_1/</code></p>
-<p>Make sure to update your <code>_quarto.yml</code> navigation to include this assignment under an “Assignments” menu.</p>
-</section>
 </section>
 <section id="part-1-portfolio-integration" class="level1">
 <h1>Part 1: Portfolio Integration</h1>
-<p>Create this assignment in your portfolio repository under an <code>assignments/assignment_1/</code> folder structure. Update your navigation menu to include:</p>
 <pre><code>- text: Assignments
   menu:
     - href: assignments/assignment_1/your_file_name.qmd
@@ -404,7 +401,6 @@ $ county_name    &lt;chr&gt; "Adams ", "Allegheny ", "Armstrong ", "Beaver ", "B
 <h2 class="anchored" data-anchor-id="high-uncertainty-counties">2.3 High Uncertainty Counties</h2>
 <p><strong>Your Task:</strong> Identify the 5 counties with the highest MOE percentages.</p>
 <p><strong>Requirements:</strong> - Sort by MOE percentage (highest first) - Select the top 5 counties - Display: county name, median income, margin of error, MOE percentage, reliability category - Format as a professional table using <code>kable()</code></p>
-<p><strong>Hint:</strong> Use <code>arrange()</code>, <code>slice()</code>, and <code>select()</code> functions.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create table of top 5 counties by MOE percentage</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>top5_uncertain <span class="ot">&lt;-</span> county_cat <span class="sc">%&gt;%</span></span>

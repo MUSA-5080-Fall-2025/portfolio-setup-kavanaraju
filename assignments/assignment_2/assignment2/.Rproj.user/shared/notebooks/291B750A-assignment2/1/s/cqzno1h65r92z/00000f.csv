@@ -1,18 +1,58 @@
-"0","# Get demographic data from ACS
-tract_ages <- get_acs(
-  geography = ""tract"",
-  variables = c(
-    ""B01001_020E"", ""B01001_021E"", ""B01001_022E"",
-    ""B01001_023E"", ""B01001_024E"", ""B01001_025E"",
-    ""B01001_044E"", ""B01001_045E"", ""B01001_046E"",
-    ""B01001_047E"", ""B01001_048E"", ""B01001_049E""
-  ),
-  state = ""PA"",
-  year = 2020,
-  output = ""wide""
-)
-"
-"2","Getting data from the 2016-2020 5-year ACS
+"0","# Get demographic data from ACS"
+"0",""
+"0","acs_vars_2022 <- load_variables(2022, ""acs5"", cache = TRUE) "
+"0",""
+"0","acs_vars_2022_65_above <- acs_vars_2022 %>% "
+"0","  filter(concept == ""Sex by Age"") %>%"
+"0","  filter(str_detect(label, ""([6-9][5-9]|[7-9][0-9]|85).*years""))"
+"0",""
+"0","acs_age_pop <- acs_vars_2022_65_above$name"
+"0",""
+"0","# In the wide format, we need names assigned to the 12 population vars based on age and sex"
+"0","names(acs_age_pop) <- acs_vars_2022_65_above$label %>%"
+"0","  str_to_lower() %>%"
+"0","  str_replace_all(""estimate!!(total!!)?"", """") %>%  # remove 'estimate!!' and 'total!!' if present"
+"0","  str_replace_all(""!!|and| "", ""_"") %>%           # replace !!, 'and', and spaces with _"
+"0","  str_replace_all(""years"", """") %>%               # remove 'years'"
+"0","  str_replace_all(""[^a-z0-9_]"", """")             # remove any remaining punctuation"
+"0",""
+"0","tract_demographics <- get_acs("
+"0","  geography = ""tract"","
+"0","  variables = c("
+"0","    total_pop = ""B01003_001"","
+"0","    median_income = ""B19013_001"","
+"0","    acs_age_pop"
+"0","  ),"
+"0","  state = ""PA"","
+"0","  year = 2022,"
+"0","  output = ""wide"""
+"0",")"
+"2","Getting data from the 2018-2022 5-year ACS
 "
 "2","Using FIPS code '42' for state 'PA'
+"
+"0","final_tract_demographics <- tract_demographics %>%"
+"0","  mutate("
+"0","    pop_65_plus = rowSums("
+"0","      select(., starts_with(""total_male_"") | starts_with(""total_female_"")) %>%"
+"0","        select(., ends_with(""E"")),"
+"0","      na.rm = TRUE"
+"0","    )"
+"0","  ) %>%"
+"0","  select(GEOID, NAME, total_popE, median_incomeE, pop_65_plus, "
+"0","         total_popM, median_incomeM)"
+"0",""
+"0","# Join to tract boundaries"
+"0","tracts_with_data <- census_tracts %>%"
+"0","  left_join(final_tract_demographics, by = ""GEOID"")"
+"0",""
+"0","sum(is.na(tracts_with_data$median_incomeE))"
+"1","[1]"
+"1"," 62"
+"1","
+"
+"0","median(tracts_with_data$median_incomeE, na.rm = TRUE)"
+"1","[1]"
+"1"," 70188"
+"1","
 "
