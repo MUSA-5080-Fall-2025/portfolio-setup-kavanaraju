@@ -670,7 +670,7 @@ pct_15min = round(beyond_15min / total_sites * 100, 1)
 map_5 <- ggplot() +
 geom_sf(data = philly_tracts, fill = "gray97", color = "white", linewidth = 0.2) +
 geom_sf(data = polling_access %>% filter(over_5),
-color = "#1b9e77", size = 0.6, alpha = 0.8) + # Teal
+color = "#d95f02", size = 0.6, alpha = 0.8) + # Teal
 geom_sf(data = polling_access %>% filter(!over_5),
 color = "gray70", size = 0.3, alpha = 0.4) +
 theme_void() +
@@ -681,7 +681,7 @@ theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 11))
 map_10 <- ggplot() +
 geom_sf(data = philly_tracts, fill = "gray97", color = "white", linewidth = 0.2) +
 geom_sf(data = polling_access %>% filter(over_10),
-color = "#7570b3", size = 0.6, alpha = 0.8) + # Indigo
+color = "#d95f02", size = 0.6, alpha = 0.8) + # Indigo
 geom_sf(data = polling_access %>% filter(!over_10),
 color = "gray70", size = 0.3, alpha = 0.4) +
 theme_void() +
