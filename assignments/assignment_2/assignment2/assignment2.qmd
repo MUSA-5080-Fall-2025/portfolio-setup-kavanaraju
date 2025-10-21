@@ -63,9 +63,9 @@ hospitals <- st_read("./data/hospitals.geojson", quiet = TRUE)
 census_tracts <- tracts(state = "PA", cb = TRUE, progress_bar = FALSE)
 
 # Check that all data loaded correctly
-glimpse(pa_counties)
-glimpse(hospitals)
-glimpse(census_tracts)
+#glimpse(pa_counties)
+#glimpse(hospitals)
+#glimpse(census_tracts)
 
 cat("pa_counties CRS:",   st_crs(pa_counties)$input,   " EPSG:", st_crs(pa_counties)$epsg, "\n")
 cat("hospitals CRS:",     st_crs(hospitals)$input,     " EPSG:", st_crs(hospitals)$epsg, "\n")
