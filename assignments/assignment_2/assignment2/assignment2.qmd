@@ -62,18 +62,21 @@ pa_counties <- st_read("./data/Pennsylvania_County_Boundaries.shp", quiet = TRUE
 hospitals <- st_read("./data/hospitals.geojson", quiet = TRUE)
 census_tracts <- tracts(state = "PA", cb = TRUE, progress_bar = FALSE)
 
-# Check that all data loaded correctly #####1
+# Check that all data loaded correctly
 glimpse(pa_counties)
 glimpse(hospitals)
 glimpse(census_tracts)
 
-st_crs(pa_counties)
-st_crs(hospitals)
-st_crs(hospitals)
+cat("pa_counties CRS:",   st_crs(pa_counties)$input,   " EPSG:", st_crs(pa_counties)$epsg, "\n")
+cat("hospitals CRS:",     st_crs(hospitals)$input,     " EPSG:", st_crs(hospitals)$epsg, "\n")
+cat("census_tracts CRS:", st_crs(census_tracts)$input, " EPSG:", st_crs(census_tracts)$epsg, "\n")
 
+cat("Hospitals in dataset:", nrow(hospitals), "\n")
+cat("Census tracts in dataset:", nrow(census_tracts), "\n")
 ```
 
 **Questions to answer:**
+
 - How many hospitals are in your dataset?
   - 223 hospitals.
 
@@ -81,10 +84,10 @@ st_crs(hospitals)
   - 3445 census tracts.
   
 - What coordinate reference system is each dataset in?
-  - PA county boundaries CRS: GCS WGS 84 (Pseudo-Mercator) / EPSG 4326. 
-  - PA census tracts CRS: PCS NAD 83 / EPSG 4269.
-  - PA hospitals CRS: GCS WGS 84 (Pseudo-Mercator) / EPSG 4326.
-
+  - PA county boundaries CRS is WGS 84 Pseudo Mercator EPSG 3857
+  - PA hospitals CRS is WGS 84 EPSG 4326
+  - PA census tracts CRS is NAD 83 EPSG 4269
+  
 ---
 
 #### Step 2: Get Demographic Data 
@@ -92,6 +95,7 @@ st_crs(hospitals)
 Use `tidycensus` to download tract-level demographic data for Pennsylvania.
 
 **Required variables:**
+
 - Total population
 - Median household income
 - Population 65 years and over (you may need to sum multiple age categories)
@@ -149,6 +153,7 @@ median(tracts_with_data$median_incomeE, na.rm = TRUE)
 ```
 
 **Questions to answer:**
+
 - What year of ACS data are you using?
   - 2022 ACS Data
   
@@ -170,43 +175,50 @@ Identify census tracts with vulnerable populations based on TWO criteria:
 ```{r}
 # Filter for vulnerable tracts based on your criteria
 tracts_with_data <- tracts_with_data %>%
-  mutate(pct_65_plus = (pop_65_plus / total_popE) * 100)
+  mutate(
+    pct_65_plus = 100 * pop_65_plus / if_else(total_popE > 0, total_popE, NA_real_)
+  )
 
-income_threshold <- quantile(
-  tracts_with_data$median_incomeE, 
-  0.25, 
-  na.rm = TRUE
-)
-elderly_threshold <- quantile(
-  tracts_with_data$pct_65_plus,
-  0.75,
-  na.rm = TRUE
-)
+# Compute thresholds on valid rows only
+valid_rows <- filter(tracts_with_data, !is.na(median_incomeE), !is.na(pct_65_plus))
 
+income_threshold  <- quantile(valid_rows$median_incomeE, 0.25, na.rm = TRUE)
+elderly_threshold <- quantile(valid_rows$pct_65_plus,   0.75, na.rm = TRUE)
+
+# Flag vulnerability only when both pieces exist
 tracts_with_data <- tracts_with_data %>%
   mutate(
-    low_income = median_incomeE <= income_threshold,
-    high_elderly = pct_65_plus >= elderly_threshold,
+    low_income  = if_else(!is.na(median_incomeE), median_incomeE <= income_threshold, NA),
+    high_elderly = if_else(!is.na(pct_65_plus),   pct_65_plus   >= elderly_threshold, NA),
     vulnerable = low_income & high_elderly
   )
 
-n_vulnerable_tracts <- sum(tracts_with_data$vulnerable, na.rm = TRUE)
-pct_vulnerable_tracts <- n_vulnerable_tracts / nrow(tracts_with_data) * 100
+# Counts over tracts with known vulnerability status
+n_vulnerable <- sum(tracts_with_data$vulnerable %in% TRUE, na.rm = TRUE)
+n_known      <- sum(!is.na(tracts_with_data$vulnerable))
+pct_vulnerable <- 100 * n_vulnerable / n_known
+
+# Print thresholds and results to keep prose in sync
+cat("Income threshold Q1:", scales::dollar(round(income_threshold)), "\n")
+cat("Age 65+ threshold Q3:", round(elderly_threshold, 1), "%\n")
+cat("Vulnerable tracts:", n_vulnerable, "of", n_known,
+    "(", scales::percent(pct_vulnerable/100, accuracy = 0.1), ")\n")
 
 ```
 
 **Questions to answer:**
+
 - What income threshold did you choose and why?
-  - I used a quantile based rule to flag relatively low incomes within Pennsylvania. The cutoff is the lowest 25 percent of tract median incomes. With 2022 data this equals $55924. This method is future proof because the threshold updates automatically as new data arrive.
+  - I based the income cutoff on statewide percentiles to identify areas that fall noticeably below the typical income level in Pennsylvania. The lower quartile served as the cutoff, representing the bottom twenty-five percent of tract median incomes.For the 2022 data this value is approximately $55924. This approach updates automatically whenever new census data are released, keeping the measure consistent over time.
 
 - What elderly population threshold did you choose and why?
-  - I used the same quantile approach as before but focused on the share of residents aged 65 and above. Tracts in the highest 25 percent for elderly population were identified as having a significant older population. With 2022 data this threshold corresponds to 23.1 percent of residents being 65 years or older.
+  - For the older-adult population I again relied on a percentile measure, selecting the upper quartile of tracts with the largest shares of residents aged sixty-five and above. This captures neighborhoods with a noticeably higher concentration of older adults compared with the rest of the state. In the 2022 data that threshold is around 23.1 percent of residents aged sixty-five or older.
 
 - How many tracts meet your vulnerability criteria?
-  - A total of 165 tracts meet both vulnerability criteria, which include having income in the lowest 25 percent of Pennsylvania census tracts and an elderly population in the highest 25 percent.
+  - A total of 165 tracts satisfy both parts of the definition, combining lower household incomes with larger elderly populations relative to other Pennsylvania tracts.
 
 - What percentage of PA census tracts are considered vulnerable by your definition?
-  - These tracts make up about 4.8 percent of all Pennsylvania census tracts, with 165 out of 3,445 meeting the definition.
+  - ~ 4.8% of PA census tracts are considered vulnerable.
 
 ---
 
@@ -244,14 +256,16 @@ tracts_with_data %>%
 ```
 
 **Requirements:**
+
 - Use an appropriate projected coordinate system for Pennsylvania
 
 - Calculate distances in miles
 
 - Explain why you chose your projection
-  - I used NAD83 Pennsylvania South EPSG 3365 for the statewide analysis. Pennsylvania has two State Plane zones that minimize distortion across its wide east to west extent. Instead of performing separate analyses for each zone I applied the South zone projection to the entire state to maintain consistency and efficiency while keeping measurement accuracy reasonable. This choice causes some distortion in the northern counties but it remains within acceptable limits for this analysis.
+  - I used the NAD 83 Pennsylvania South projection EPSG 3365 to keep measurements in linear units across the state. I also considered using the NAD 83 Conus Albers projection EPSG 5070 since it offers consistent accuracy statewide, but chose 3365 for efficiency and compatibility with the existing data. The distortion in northern counties is minor and acceptable for this level of analysis.
 
 **Questions to answer:**
+
 - What is the average distance to the nearest hospital for vulnerable tracts?
   - 15.57 miles
 
@@ -293,7 +307,7 @@ tracts_with_data %>%
   - 33.94%
 
 - Does this surprise you? Why or why not?
-  - I wasn't surprised. I examined the counties that contain these underserved tracts and found that most are located in rural Pennsylvania where an aging population and lower income levels are more common. These areas also tend to have greater distances between communities and hospitals which helps explain the limited access.
+  - Not really. Most of these tracts are found in rural parts of Pennsylvania where hospitals are spread farther apart. These areas also tend to have older populations and lower incomes, so longer travel distances to healthcare facilities are expected.
 
 ---
 
@@ -345,6 +359,7 @@ tracts_by_county %>%
 ```
 
 **Required county-level statistics:**
+
 - Number of vulnerable tracts
 - Number of underserved tracts  
 - Percentage of vulnerable tracts that are underserved
@@ -352,14 +367,15 @@ tracts_by_county %>%
 - Total vulnerable population
 
 **Questions to answer:**
+
 - Which 5 counties have the highest percentage of underserved vulnerable tracts?
-  - 18 counties have the same percentage of vulnerable tracts that are underserved. Those 18 counties are printed above.
+  - 18 counties share the same highest percentage of underserved vulnerable tracts. These are listed in the output table above.
 
 - Which counties have the most vulnerable people living far from hospitals?
   - Fayette, Northumberland, Westmoreland, and Clearfield, and Somerset.
 
 - Are there any patterns in where underserved counties are located?
-  - Most of the counties are large rural counties.
+  - Most underserved counties are rural and spread across central and western Pennsylvania. These areas generally have lower population densities, limited hospital availability, and longer travel distances between communities and healthcare facilities.
 
 ---
 
@@ -388,7 +404,8 @@ tracts_by_county %>%
   )
 
 ```
-Vulnerable tracts refer to areas that fall within the lowest quarter of median household income and the highest quarter of population aged sixty-five and older. Underserved tracts describe those vulnerable areas where residents live more than fifteen miles from the closest hospital.
+
+Note: Vulnerable tracts are those in the lowest twenty-five percent of median household income and the highest twenty-five percent of population aged sixty-five or older. Underserved tracts are the subset of those areas located more than fifteen miles from the nearest hospital.
 
 **Requirements:**
 - Use `knitr::kable()` or similar for formatting
@@ -405,9 +422,8 @@ Using the skills from Week 3 (Data Visualization), create publication-quality ma
 
 ### Map 1: County-Level Choropleth 
 
-Create a choropleth map showing healthcare access challenges at the county level.
+The following map illustrates healthcare access disparities across Pennsylvania by showing where vulnerable populations live far from hospitals. Counties are shaded according to the share of vulnerable tracts that are underserved, while hospital locations appear as red circles. The darker blue areas highlight counties with greater accessibility challenges, most notably in rural parts of central and north-eastern Pennsylvania.
 
-**Your Task:**
 ```{r}
 # Create county-level access map
 county_map_data <- pa_counties %>%
@@ -420,7 +436,7 @@ ggplot() +
           size = 0.3) +
   geom_sf(data = hospitals, 
           color = "red", 
-          size = 1, 
+          size = 0.5, 
           alpha = 0.75,
           shape = 1) +
   scale_fill_gradient(
@@ -433,7 +449,7 @@ ggplot() +
   labs(
     title = "Healthcare Access Challenges in Pennsylvania",
     subtitle = "Percentage of vulnerable tracts in a county that are underserved (>15 miles from a hospital)",
-    caption = "Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nBlue crosses indicate hospital locations"
+    caption = "Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nRed circles indicate hospital locations"
   ) +
   theme_void() +
   theme(
@@ -445,21 +461,12 @@ ggplot() +
 
 ```
 
-**Requirements:**
-- Fill counties by percentage of vulnerable tracts that are underserved
-- Include hospital locations as points
-- Use an appropriate color scheme
-- Include clear title, subtitle, and caption
-- Use `theme_void()` or similar clean theme
-- Add a legend with formatted labels
-
 ---
 
 ### Map 2: Detailed Vulnerability Map 
 
-Create a map highlighting underserved vulnerable tracts.
+This map highlights census tracts that are both economically and demographically vulnerable yet located far from hospitals. The red areas represent tracts whose centers lie more than 15 miles from the nearest hospital. Most of these tracts appear in rural parts of central and western Pennsylvania.
 
-**Your Task:**
 ```{r}
 # Create detailed tract-level map
 ggplot() +
@@ -478,13 +485,13 @@ ggplot() +
   # Hospital locations
   geom_sf(data = hospitals, 
           color = "#08306b", 
-          size = 1, 
+          size = 0.5, 
           alpha = 0.75,
           shape = 1) +
   labs(
     title = "Underserved Vulnerable Census Tracts in Pennsylvania",
     subtitle = "Red areas show vulnerable tracts where the center is more than 15 miles from the nearest hospital",
-    caption = "Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nBlue crosses indicate hospital locations"
+    caption = "Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nBlue circles indicate hospital locations"
   ) +
   theme_void() +
   theme(
@@ -496,18 +503,11 @@ ggplot() +
 
 ```
 
-**Requirements:**
-- Show underserved vulnerable tracts in a contrasting color
-- Include county boundaries for context
-- Show hospital locations
-- Use appropriate visual hierarchy (what should stand out?)
-- Include informative title and subtitle
-
 ---
 
 ### Chart: Distribution Analysis
 
-Create a visualization showing the distribution of distances to hospitals for vulnerable populations.
+The histogram below shows how far vulnerable tracts are from their nearest hospital. Most tracts fall within fifteen miles, indicating reasonable access, but a smaller group extends far beyond that distance. The dashed red line marks the fifteen-mile cutoff used to define underserved areas, highlighting the small but significant share of tracts facing long travel distances to care.
 
 **Your Task:**
 ```{r}
@@ -522,29 +522,18 @@ tracts_with_data %>%
     title = "Distance to Nearest Hospital for Vulnerable Tracts",
     x = "Distance (miles)",
     y = "Number of Vulnerable Tracts",
-    caption = "Vulnerable tracts: bottom 25% in median income & top 25% in population 65+, relative to the rest of PA\nDashed line shows 15-mile threshold used to define underserved.\nThere is a clustering of tracts with relatively close hospital access (<15 miles) and a very long tail beyond the 15 mile cutoff."
+    caption = "Vulnerable tracts represent the lowest quarter of median household income and the highest quarter of residents aged 65 and older across Pennsylvania.\nThe red dashed line marks the 15-mile threshold used to classify underserved areas.\nMost tracts are located close to hospitals, while a smaller number extend far beyond this limit, forming a long right tail in the distribution."
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.caption = element_text(hjust = 0, size = 8, lineheight = 1.1)
+  )
 
 ```
-
-**Suggested chart types:**
-- Histogram or density plot of distances
-- Box plot comparing distances across regions
-- Bar chart of underserved tracts by county
-- Scatter plot of distance vs. vulnerable population size
-
-**Requirements:**
-- Clear axes labels with units
-- Appropriate title
-- Professional formatting
-- Brief interpretation (1-2 sentences as a caption or in text)
 
 ---
 
 ## Part 3: Bring Your Own Data Analysis 
-
-Choose your own additional spatial dataset and conduct a supplementary analysis.
 
 **Infrastructure & Services: Polling Place Accessibility**
 - **Data:** Polling Places, SEPTA stops, Census tracts (elderly population, disability rates)
@@ -553,8 +542,6 @@ Choose your own additional spatial dataset and conduct a supplementary analysis.
 - **Policy relevance:** Voting rights, election infrastructure, ADA compliance
 
 ### Your Analysis
-
-**Your Task:**
 
 1. **Find and load additional data**
    - Document your data source
@@ -613,14 +600,15 @@ philly_bus_stops <- septa_bus_stops %>%
 ```
 
 **Questions to answer:**
+
 - What dataset did you choose and why?
-  - I selected the polling place dataset because it includes detailed accessibility designations that make it possible to study how voting sites accommodate residents with different mobility needs. The dataset also pairs well with SEPTA bus stop locations, which I used to examine how transit access aligns with these polling sites across Philadelphia. My goal was to identify voting locations that may lack convenient bus service nearby.
+  - I used the polling place dataset because it provides detailed accessibility classifications for each voting site, which helps assess physical access for residents with mobility needs. To complement this, I included SEPTA bus stop data to examine how easily polling sites can be reached by public transit.
 
 - What is the data source and date?
-  - The polling place information comes from OpenDataPhilly, last updated on December 8, 2014.The SEPTA bus stop data were obtained from the SEPTA Open Data Portal for 2022.
+  - The polling place data are from OpenDataPhilly, last updated on December 8, 2014.The SEPTA bus stop dataset comes from the SEPTA Open Data Portal (2022).
   
 - How many features does it contain?
-  - There are 1,703 polling sites listed within Philadelphia and 18,066 bus stops across SEPTA’s broader service area. When limited to the city’s census tracts, the number of bus stops decreases to 10,654.
+  - There are 1,703 polling places in Philadelphia and 18,066 bus stops across SEPTA’s service area. When filtered to bus stops within Philadelphia census tracts, the count reduces to 10,654.
 
 - What CRS is it in? Did you need to transform it?
   - Both datasets were originally in the WGS 84 coordinate system and were reprojected to EPSG 3365 to align with the Pennsylvania State Plane South coordinate system used in this analysis.
@@ -629,118 +617,103 @@ philly_bus_stops <- septa_bus_stops %>%
 
 2. **Pose a research question**
 
-To what extent are Philadelphia’s polling places accessible by public transit, and which ones are located beyond walking distances of 5, 10, or 15 minutes from the nearest bus stop?
+Which polling places in Philadelphia are located beyond 5, 10, and 15 minute walking distances from the nearest bus stop?
 
 ---
 
 3. **Conduct spatial analysis**
 
-Use at least TWO spatial operations to answer your research question.
-
-**Required operations (choose 2+):**
-- Buffers
-- Spatial joins
-- Spatial filtering with predicates
-- Distance calculations
-- Intersections or unions
-- Point-in-polygon aggregation
+This step evaluates how far polling sites are from nearby bus stops to identify locations that may be less accessible by public transit. To do this, buffer zones were generated around all bus stops to represent 5, 10, and 15 minute walking distances. Polling locations outside these buffer areas were flagged, and straight-line distances to the nearest stop were calculated for each site.
 
 **Your Task:**
 ```{r}
-# Your spatial analysis
-bus_buffer_5min <- st_buffer(philly_bus_stops, dist = 0.20 * 5280)
-bus_buffer_10min <- st_buffer(philly_bus_stops, dist = 0.40 * 5280)
-bus_buffer_15min <- st_buffer(philly_bus_stops, dist = 0.60 * 5280)
+# Create walking-distance buffers (0.2, 0.4, 0.6 miles converted to feet)
+bus_buf_5 <- st_buffer(philly_bus_stops, dist = 0.20 * 5280)
+bus_buf_10 <- st_buffer(philly_bus_stops, dist = 0.40 * 5280)
+bus_buf_15 <- st_buffer(philly_bus_stops, dist = 0.60 * 5280)
 
-# Doing this to consolidate buffers for easier analysis
-bus_zone_5min <- st_union(bus_buffer_5min)
-bus_zone_10min <- st_union(bus_buffer_10min)
-bus_zone_15min <- st_union(bus_buffer_15min)
+# Merge buffers into continuous coverage zones for simpler comparison
+zone_5 <- st_union(bus_buf_5)
+zone_10 <- st_union(bus_buf_10)
+zone_15 <- st_union(bus_buf_15)
 
-polling_no_transit_5min <- polling_places %>%
-  st_difference(bus_zone_5min)
+# Identify polling places that fall outside each buffer zone
+polling_out_5 <- polling_places %>% st_difference(zone_5)
+polling_out_10 <- polling_places %>% st_difference(zone_10)
+polling_out_15 <- polling_places %>% st_difference(zone_15)
 
-polling_no_transit_10min <- polling_places %>%
-  st_difference(bus_zone_10min)
-
-polling_no_transit_15min <- polling_places %>%
-  st_difference(bus_zone_15min)
-
-# Here, I'm finding the distance to the nearest bus stop, and setting some boolean variables for my time categories.
-polling_with_distance <- polling_places %>%
+# Compute distance from every polling place to its nearest bus stop
+polling_access <- polling_places %>%
   mutate(
-    dist_to_bus = st_distance(., philly_bus_stops) %>% 
-      apply(1, min) %>% 
-      as.numeric() / 5280,
-    beyond_5min = dist_to_bus > 0.20,
-    beyond_10min = dist_to_bus > 0.40,
-    beyond_15min = dist_to_bus > 0.60
+    dist_to_stop = st_distance(., philly_bus_stops) %>%
+      apply(1, min) %>%
+      as.numeric() / 5280,  # feet to miles
+    over_5  = if_else(is.na(dist_to_stop), FALSE, dist_to_stop > 0.20),
+    over_10 = if_else(is.na(dist_to_stop), FALSE, dist_to_stop > 0.40),
+    over_15 = if_else(is.na(dist_to_stop), FALSE, dist_to_stop > 0.60)
   )
 
-polling_with_distance %>%
-  st_drop_geometry() %>%
-  summarise(
-    total_polling = n(),
-    beyond_5min = sum(beyond_5min, na.rm = TRUE),
-    beyond_10min = sum(beyond_10min, na.rm = TRUE),
-    beyond_15min = sum(beyond_15min, na.rm = TRUE),
-    pct_beyond_5min = round((beyond_5min / total_polling) * 100, 1),
-    pct_beyond_10min = round((beyond_10min / total_polling) * 100, 1),
-    pct_beyond_15min = round((beyond_15min / total_polling) * 100, 1)
-  )
+# Summarize accessibility counts
+polling_access %>%
+st_drop_geometry() %>%
+summarise(
+total_sites = n(),
+beyond_5min = sum(over_5, na.rm = TRUE),
+beyond_10min = sum(over_10, na.rm = TRUE),
+beyond_15min = sum(over_15, na.rm = TRUE),
+pct_5min = round(beyond_5min / total_sites * 100, 1),
+pct_10min = round(beyond_10min / total_sites * 100, 1),
+pct_15min = round(beyond_15min / total_sites * 100, 1)
+)
 
-map_5min <- ggplot() +
-  geom_sf(data = philly_tracts, fill = "gray95", color = "white", size = 0.2) +
-  geom_sf(data = polling_with_distance %>% filter(beyond_5min), 
-          color = "gold", size = 1.5, alpha = 0.7) +
-  geom_sf(data = polling_with_distance %>% filter(!beyond_5min), 
-          color = "gray70", size = 0.5, alpha = 0.3) +
-  theme_void() +
-  labs(title = "> 5 min walk") +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+#Map 1: Polling places more than 5 minutes from a bus stop
+map_5 <- ggplot() +
+geom_sf(data = philly_tracts, fill = "gray97", color = "white", linewidth = 0.2) +
+geom_sf(data = polling_access %>% filter(over_5),
+color = "#1b9e77", size = 0.6, alpha = 0.8) + # Teal
+geom_sf(data = polling_access %>% filter(!over_5),
+color = "gray70", size = 0.3, alpha = 0.4) +
+theme_void() +
+labs(title = "Beyond 5-Minute Walk") +
+theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 11))
 
-# Map 2: Beyond 10 minutes
-map_10min <- ggplot() +
-  geom_sf(data = philly_tracts, fill = "gray95", color = "white", size = 0.2) +
-  geom_sf(data = polling_with_distance %>% filter(beyond_10min), 
-          color = "orangered", size = 1.5, alpha = 0.7) +
-  geom_sf(data = polling_with_distance %>% filter(!beyond_10min), 
-          color = "gray70", size = 0.5, alpha = 0.3) +
-  theme_void() +
-  labs(title = "> 10 min walk") +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+# Map 2: Polling places beyond 10 minutes
+map_10 <- ggplot() +
+geom_sf(data = philly_tracts, fill = "gray97", color = "white", linewidth = 0.2) +
+geom_sf(data = polling_access %>% filter(over_10),
+color = "#7570b3", size = 0.6, alpha = 0.8) + # Indigo
+geom_sf(data = polling_access %>% filter(!over_10),
+color = "gray70", size = 0.3, alpha = 0.4) +
+theme_void() +
+labs(title = "Beyond 10-Minute Walk") +
+theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 11))
 
-# Map 3: Beyond 15 minutes
-map_15min <- ggplot() +
-  geom_sf(data = philly_tracts, fill = "gray95", color = "white", size = 0.2) +
-  geom_sf(data = polling_with_distance %>% filter(beyond_15min), 
-          color = "maroon", size = 1.5, alpha = 0.7) +
-  geom_sf(data = polling_with_distance %>% filter(!beyond_15min), 
-          color = "gray70", size = 0.5, alpha = 0.3) +
-  theme_void() +
-  labs(title = "> 15 min walk") +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+# Map 3: Polling places beyond 15 minutes
+map_15 <- ggplot() +
+geom_sf(data = philly_tracts, fill = "gray97", color = "white", linewidth = 0.2) +
+geom_sf(data = polling_access %>% filter(over_15),
+color = "#d95f02", size = 0.6, alpha = 0.8) + # Burnt orange accent
+geom_sf(data = polling_access %>% filter(!over_15),
+color = "gray70", size = 0.3, alpha = 0.4) +
+theme_void() +
+labs(title = "Beyond 15-Minute Walk") +
+theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 11))
 
 # Combine maps
-map_5min + map_10min + map_15min +
-  plot_annotation(
-    title = "Philadelphia Polling Places Beyond Certain Walking Distances from Bus Stops",
-    subtitle = "Colored dots show polling locations beyond specified walking time to nearest bus stop",
-    theme = theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-                  plot.subtitle = element_text(hjust = 0.5, size = 10))
-  )
+map_5 + map_10 + map_15 +
+plot_annotation(
+title = "Philadelphia Polling Places Outside Walking Distance from Bus Stops",
+subtitle = "Points show polling locations beyond 5, 10, and 15-minute walks to the nearest bus stop",
+theme = theme(
+plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+plot.subtitle = element_text(hjust = 0.5, size = 10)
+)
+)
 
 ```
 
-**Analysis requirements:**
-- Clear code comments explaining each step
-- Appropriate CRS transformations
-- Summary statistics or counts
-- At least one map showing your findings
-- Brief interpretation of results (3-5 sentences)
-
-**Your interpretation:**
-Polling places located more than a five minute walk from a bus stop appear to present the most potential for further study. These sites are largely concentrated along the city’s outer edges, suggesting spatial gaps in transit coverage. Future work could assess the surrounding street environments, since a short walk through a calm residential block differs greatly from one that requires crossing high-traffic corridors. This analysis could also integrate additional layers such as polling place accessibility ratings, their presence in vulnerable census tracts, and proximity to other transit options including SEPTA rail lines, trolleys, bike share stations, and bike lanes.
+**Interpretation:**
+Philadelphia has a total of 1703 polling locations. About 106 of them, or 6 percent, are located more than a five minute walk from a bus stop. Only three sites are farther than ten minutes, and none are beyond fifteen minutes. Most of these polling places are found along the city’s outer areas where the street network is less dense and transit coverage is limited. Overall, the majority of polling sites are within a short walking distance to bus service, but the few distant ones highlight where pedestrian access and transit connectivity could be improved, especially in neighborhoods at the city’s edge.
 
 ## Finally - A few comments about your incorporation of feedback!
 Broke down my code even more and cleaned up the document.
