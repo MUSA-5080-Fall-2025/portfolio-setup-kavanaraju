@@ -23,7 +23,7 @@ website:
             text: "Assignment 1: Census Data Exploration" 
           - href: assignments/assignment_2/assignment2/assignment2.qmd
             text: "Assignment 2:Spatial Analysis and Visualization" 
-          - href: assignments/assignment_2/mid_term/model_script.qmd
+          - href: assignments/mid_term/model_script.qmd
             text: "Mid Term" 
 
 format:
