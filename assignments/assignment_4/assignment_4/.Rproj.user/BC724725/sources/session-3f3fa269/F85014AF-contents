@@ -1,0 +1,36 @@
+---
+title: "Week 2 Notes - Course Introduction"
+date: "2025-09-15"
+---
+
+## Key Concepts Learned
+- **Visualization matters:** summary statistics can obscure patterns; outliers may represent critical communities.  
+- Ethical responsibility to report MOE, show uncertainty, and avoid misleading visuals.  
+- **Grammar of Graphics (ggplot2):**  
+  Data → Aesthetics → Geometries → Visuals, with additional layers like scales, themes, and annotations.  
+- **Exploratory Data Analysis (EDA):** a detective process of exploring distributions, relationships, anomalies, and reliability before modeling.  
+- **Data Joins:** left, right, inner, and full joins for integrating datasets in policy analysis.  
+
+## Coding Techniques
+- **ggplot2 basics:**  
+  - Structure: `ggplot(data) + aes(x=var1, y=var2) + geom_*() + layers`.  
+  - Aesthetic mappings: x, y, color, fill, size, shape, alpha.  
+  - Adding layers with `+` for customization.  
+- **EDA tools:** histograms, scatterplots, boxplots for detecting distributions and outliers.  
+- **Data reliability:** use coefficient of variation (CV) thresholds to categorize estimates as reliable, somewhat reliable, or unreliable.  
+- **dplyr joins:** `left_join()`, `right_join()`, `inner_join()`, `full_join()`.  
+
+## Questions & Challenges
+- How to best visualize **uncertainty** so that policymakers actually understand and act on it.  
+- Practice needed in customizing ggplot themes for clear and professional presentation.  
+- Still clarifying when to collapse categories or aggregate geographies to reduce statistical uncertainty.  
+
+## Connections to Policy
+- Poor visualization (e.g., ignoring MOEs) can directly misinform policy and harm vulnerable communities.  
+- Reporting reliability aligns with the **AICP Code of Ethics** — transparency is both technical best practice and ethical obligation.  
+- Visualizations tailored for different audiences (legislators, community groups, media) can shift how data drives decisions.  
+
+## Reflection
+- The most interesting insight was **Anscombe’s Quartet**: identical summary statistics but radically different patterns when visualized — proving the necessity of graphs.  
+- I’ll apply this by always starting analysis with EDA and incorporating data quality checks into my visuals.  
+- This week reinforced that visualization is not just aesthetic — it is a tool for **ethical communication** in public policy.

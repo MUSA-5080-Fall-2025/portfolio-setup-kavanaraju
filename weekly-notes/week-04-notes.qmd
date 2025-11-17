@@ -1,0 +1,35 @@
+---
+title: "Week 4 Notes - Mapping Census Data and Spatial Visualization"
+date: "2025-09-29"
+---
+
+## Key Concepts Learned
+- Mapping is a form of analysis that reveals spatial structure, clustering, and inequities  
+- Choropleth mapping using sf and ggplot2 helps visualize geographic variation  
+- Consistent CRS is essential when combining spatial datasets  
+- Census geography affects reliability because smaller geographies have higher margins of error  
+- Ethical cartography emphasizes honest color choices, normalization, and communication of uncertainty  
+
+
+## Coding Techniques
+- Using get_acs with geometry set to TRUE to pull spatial ACS data  
+- Joining ACS variables to shapefiles using left_join with GEOID  
+- Creating maps with ggplot using geom_sf, scale_fill_viridis_c, theme_void, and coord_sf  
+- Using classInt to create quantile, equal interval, and natural break classifications
+- Exporting publication quality figures with ggsave 
+
+## Questions & Challenges
+- How to select the right classification method for different types of distributions?
+- How to handle tracts with missing values or extremely large margins of error?
+- How to choose color palettes that communicate differences without exaggerating them?
+
+## Connections to Policy
+- Maps directly influence decision making and resource allocation
+- Ignoring uncertainty can mislead policymakers and disadvantage vulnerable groups
+- Spatial visualization is essential for transportation planning, equity analysis, and
+demographic assessment
+
+## Reflection
+- Map design involves interpretation and the same dataset can produce very different messages depending on visual choices
+- This week highlighted the responsibility to be transparent and ethical when communicating spatial information
+- I will apply these lessons by checking CRS carefully, evaluating multiple classification options, and including uncertainty in any policy facing map

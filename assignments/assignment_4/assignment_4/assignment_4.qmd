@@ -22,9 +22,9 @@ execute:
 
 Street lighting plays an important role in shaping urban safety and crime prevention. The broken windows perspective states that visible signs of disorder, such as street lights that do not work, can signal weakened social control and encourage criminal activity. Crime Prevention Through Environmental Design also emphasizes visibility, natural surveillance, and well maintained public spaces as environmental factors that influence offending. For this reason, complaints about street lights being out provide a clear and measurable indicator of neighborhood maintenance and environmental disorder that may relate to burglary risk.
 
-This analysis investigates whether patterns of street light outages help predict burglary risk in Chicago. I use data on burglaries and 311 complaints from the year 2017 and begin by examining the spatial distribution of both datasets in order to identify prominent clusters and areas where outages and burglaries appear together. I then aggregate all features to a regular 500 meter fishnet grid that covers the entire city. This grid provides a consistent spatial structure for modeling. For each grid cell I create several spatial predictors, including the count of burglaries, the count of street light outages, the distance to nearby burglary hotspots, and a Local Morans I statistic that captures spatial clustering and outlier patterns.
+This analysis investigates whether patterns of street light outages help predict burglary risk in Chicago. I use data on burglaries and 311 complaints from the year 2017 and begin by examining the spatial distribution of both datasets in order to identify prominent clusters and areas where outages and burglaries appear together. I then aggregate all features to a regular 500 meter fishnet grid that covers the entire city. This grid provides a consistent spatial structure for modeling. For each grid cell I create several spatial predictors, including the count of burglaries, the count of street light outages, the mean distance to nearby outages, the distance to nearby street light outage hot spots, and a Local Moran’s I statistic that captures spatial clustering and outlier patterns in the outage counts.
 
-Using these features, I estimate Poisson and Negative Binomial count regression models to evaluate how well street light outages and spatial context explain variation in burglary counts across the grid. I assess the fit of the models using AIC values and also evaluate predictive performance through spatial validation using a Leave One Group Out cross validation that separates the data by community area. I also compare the regression models to a kernel density estimate, which is a commonly used spatial baseline for crime prediction.
+Using these features, I estimate Poisson and Negative Binomial count regression models to evaluate how well street light outages and spatial context explain variation in burglary counts across the grid. I assess the fit of the models using AIC values and also evaluate predictive performance through spatial validation using a Leave One Group Out cross validation that separates the data by police district. I also compare the regression models to a kernel density estimate, which is a commonly used spatial baseline for crime prediction.
 
 As a final step, I test the model that was trained on 2017 data using burglaries from the year 2018. This allows me to evaluate how well the model performs when predicting a future year rather than data from the same period. Together, these steps help determine whether street light outage patterns contain meaningful predictive information about burglary risk and whether these patterns can support forward looking urban safety strategies.
 
@@ -449,7 +449,7 @@ if (nrow(hotspots) > 0) {
       )
     )
   
-  cat("✓ Calculated distance to street light out complaints\n")
+  cat("✓ Calculated distance to street light outage hot spots\n")
   cat("  - Number of hot spot cells:", nrow(hotspots), "\n")
 } else {
   fishnet <- fishnet %>%
@@ -526,7 +526,7 @@ dispersion <- sum(residuals(model_poisson, type = "pearson")^2) /
 cat("Dispersion parameter:", round(dispersion, 2), "\n")
 cat("Rule of thumb: >1.5 suggests overdispersion\n")
 ```
-The residual deviance is far larger than the degrees of freedom, which confirms strong overdispersion. This means the Poisson model is not appropriate for these data and a Negative Binomial model is required
+The dispersion statistic is well above the rule-of-thumb threshold of 1.5, which confirms strong overdispersion. This means the Poisson model is not appropriate for these data and a Negative Binomial model is required.
 
 ## 4.4 Negative Binomial Regression
 
@@ -631,7 +631,7 @@ The cross validation results show that the model performs consistently across mo
 
 In this part, I compare the fitted Negative Binomial model to a simple spatial baseline using kernel density estimation. The baseline assumes that crime is most likely to occur near locations where it has occurred in the past and ignores explicit predictors.
 
-## 6.1 Kernal Density Baseline
+## 6.1 Kernel Density Baseline
 
 ```{r kde-baseline}
 #| message: false
@@ -838,8 +838,12 @@ validation_2018 <- fishnet_2018 |>
 validation_2018
 ```
 
-The temporal validation errors for 2018 are larger than the spatial cross validation errors for 2017. This means the model generalizes across space more reliably than across time. Year to year changes in burglary activity reduce temporal stability. This reinforces the need for frequent model updating if used for operational prediction.
+The temporal validation errors for 2018 are very similar to, and slightly lower than, the spatial cross-validation errors for 2017. This suggests that the model generalizes about as well across time as it does across space. Even so, year-to-year changes in burglary activity and maintenance conditions mean that the model should be updated regularly if it were used operationally.
 
 # Conclusion
 
-This analysis demonstrates that Street Light Out complaints contain meaningful predictive information about burglary risk in Chicago. Areas with more outages, shorter distances to outages, and closer proximity to outage clusters tend to have higher burglary counts. The Negative Binomial model captures these relationships more effectively than the Poisson model. Kernel density predictions produce slightly lower error, which is common for purely spatial methods, but the Negative Binomial model provides clearer interpretability about the influence of infrastructure maintenance on crime. Spatial cross validation shows strong generalization across districts, while temporal validation reveals that burglary patterns shift from year to year. Overall, the results show how operational infrastructure data can be integrated into spatial predictive frameworks to support urban safety analysis.
+This analysis shows that Street Light Out complaints carry meaningful information about burglary risk in Chicago. At the grid-cell level, cells with more outages, shorter distances to outages, and closer proximity to outage hot spots tend to have higher burglary counts. The Poisson model captures these patterns, but a strong overdispersion diagnostic and much lower AIC values indicate that the Negative Binomial specification is the appropriate choice for both inference and prediction.
+
+When I compare the Negative Binomial model to a kernel density baseline, the kernel density predictions produce lower error. This is expected because kernel density estimation directly reproduces the spatial structure of past burglaries, while the regression model trades some predictive accuracy for interpretability about how outage counts, proximity, and clustering relate to burglary risk. Spatial cross-validation by police district shows that the model generalizes reasonably well across most districts, even though prediction error is higher in a few districts with more unusual or sparse burglary patterns. Temporal validation using 2018 burglaries produces errors that are similar in magnitude to the spatial cross-validation results, which suggests that the relationship between 2017 outage patterns and burglary risk is relatively stable from one year to the next.
+
+These results highlight both the promise and limits of using operational infrastructure data for crime prediction. Street Light Out complaints are not a substitute for historical crime data, but they do help explain where burglary risk concentrates and offer a forward-looking signal that does not rely on future crime records. In practice, the strongest approach would combine kernel density forecasts based on recent burglaries with explanatory models that incorporate outage patterns and other environmental features. Together, these tools can support more proactive, maintenance-oriented urban safety strategies while making the underlying drivers of predicted hot spots more transparent to planners, engineers, and communities.
