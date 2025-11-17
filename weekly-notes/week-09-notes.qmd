@@ -1,23 +1,48 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction"
+date: "2025-11-03"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Spatial lag models include a term where the outcome depends on the average values of neighboring outcomes  
+- This structure creates a circular dependency when predicting new observations because neighbors’ outcomes are also unknown  
+- Spatial lag models are appropriate for inference about spillover effects but not for forecasting or out-of-sample prediction  
+- Temporal prediction problems occur because new listings have no known neighbor sale prices  
+- Transfer prediction problems occur because lag parameters estimated in one city do not transfer to a different market  
+- Spatial features (distance to transit, number of parks, neighborhood income) are usable for prediction because they are always observable  
+- Moran’s I indicates spatial autocorrelation in residuals but should lead to better feature engineering, not adoption of spatial lag models  
+- Machine learning methods also cannot use neighbor outcomes as features because the values do not exist for new predictions  
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Understanding lagsarlm model structure and how the spatial lag term is computed
+model_2024 <- spatialreg::lagsarlm(
+  log(price) ~ sqft + bedrooms + bathrooms,
+  data = sales_2024,
+  listw = neighbors_weights
+)
+- Demonstrating circular dependency in prediction
+- Visualizing dependency cycles using graph structures (mermaid diagrams)
+- Replacing outcome-based lag features with spatially engineered predictors (buffer counts, distances, census attributes)
+orlando$dist_to_transit <- get_transit_distance(orlando)
+orlando$parks_500ft <- count_parks_buffer(orlando, 500)
+orlando$median_income_tract <- get_census_data(orlando)
+orlando$predicted_price <- predict(model, newdata = orlando)
+- Emphasizing feature engineering as the preferred solution to spatial error clustering
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How to determine which spatial features best capture the missing spatial structure indicated by Moran’s I
+- How to select appropriate buffer distances for features such as parks, transit, or amenities
+- How to communicate to stakeholders that spatial lag models are unsuitable for prediction despite appearing “more spatial”
+- When to re-estimate models for a new city versus when to reuse coefficients
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Using spatial lag models for forecasting housing prices, crime, or service demand can lead to flawed and unusable predictions
+- Policy decisions relying on predictions must use features that are observable at the time of forecasting
+- Spatial clustering of errors signals gaps in spatial context, such as missing amenities, environmental factors, or fixed effects
+- Robust feature engineering supports fairer and more transparent policy modeling
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most interesting takeaway was how clearly the circular dependency problem explains why SAR models cannot predict future values
+- Understanding temporal and transfer prediction failures helped clarify when spatial econometric models are appropriate
+- I now see the importance of improving spatial features rather than modifying the model structure
+- Going forward I will avoid recommending spatial lag or error models for prediction tasks and instead focus on engineered spatial context to reduce Moran’s I and improve model performance

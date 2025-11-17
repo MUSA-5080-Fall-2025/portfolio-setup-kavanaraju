@@ -1,23 +1,50 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 6 Notes - Regression Diagnostics and Improving Model Fit"
+date: "2025-10-13"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Regression relies on core assumptions including linearity, independent errors, constant variance, and normally distributed residuals  
+- Violating assumptions leads to biased estimates, unreliable predictions, or misleading inference  
+- Residual plots help identify patterns such as curvature, heteroskedasticity, and influential outliers  
+- Influential points affect coefficient estimates and must be checked using Cook’s Distance, leverage, and standardized residuals  
+- Transformations such as log, square root, or polynomial terms can improve linear relationships  
+- Adding relevant predictors can reduce omitted variable bias but risks overfitting if not justified  
+- Comparing models using AIC, BIC, RMSE, and adjusted R² helps identify more appropriate specifications  
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Generating fitted values and residuals using augment
+library(broom)
+aug <- augment(model)
+- Plotting residuals vs fitted values to diagnose heteroskedasticity or nonlinearity
+ggplot(aug, aes(.fitted, .resid)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, color = "red") +
+  theme_minimal()
+- Checking for influential points using Cook’s Distance
+plot(model, which = 4)
+- Creating Q-Q plots to check normality of residuals
+plot(model, which = 2)
+- Fitting models with log or polynomial transformations
+model_log <- lm(log(median_incomeE) ~ log(total_popE), data = pa_data)
+model_poly <- lm(median_incomeE ~ poly(total_popE, 2), data = pa_data)
+- Comparing model fit with RMSE and AIC
+rmse1 <- sqrt(mean((aug$.resid)^2))
+AIC(model1, model_log, model_poly)
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How to decide when a transformation is theoretically justified vs statistically convenient
+- How to interpret coefficients after log or polynomial transformations
+- When to treat an influential county as a true outlier vs a meaningful data point that should remain
+- How to communicate diagnostic findings to policymakers who may not understand residuals or assumptions
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Poor model diagnostics can lead to incorrect policy conclusions, especially when predicting economic or demographic outcomes
+- Influential points often represent meaningful real-world conditions such as small rural counties or high-growth urban areas
+- Diagnostics help ensure transparency and reduce the risk of misallocating resources based on flawed models
+- Transformations and improved fit increase the reliability of forecasts used in planning decisions
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most eye-opening part was understanding how easy it is to produce a regression that looks acceptable on paper but fails diagnostic checks
+- I learned how patterns in residuals reveal deeper issues such as missing variables, nonlinearity, or structural differences across geographies
+- I will apply this by routinely examining diagnostics, considering transformations carefully, and comparing multiple model specifications before making policy-relevant interpretations

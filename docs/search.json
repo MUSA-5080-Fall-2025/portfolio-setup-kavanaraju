@@ -1314,5 +1314,215 @@
     "title": "Assignment 4: Spatial Predictive Analysis",
     "section": "6.1 Kernel Density Baseline",
     "text": "6.1 Kernel Density Baseline\n\n\nCode\n# Convert burglaries to ppp (point pattern) format for spatstat\nburglaries_ppp &lt;- as.ppp(\n  st_coordinates(burglaries),\n  W = as.owin(st_bbox(chicagoBoundary))\n)\n\n# Calculate KDE with 1km bandwidth\nkde_burglaries &lt;- density.ppp(\n  burglaries_ppp,\n  sigma = 1000,  # 1km bandwidth\n  edge = TRUE    # Edge correction\n)\n\n# Convert to terra raster (modern approach, not raster::raster)\nkde_raster &lt;- rast(kde_burglaries)\n\n# Extract KDE values to fishnet cells\nfishnet &lt;- fishnet %&gt;%\n  mutate(\n    kde_value = terra::extract(\n      kde_raster,\n      vect(fishnet),\n      fun = mean,\n      na.rm = TRUE\n    )[, 2]  # Extract just the values column\n  )\n\ncat(\"✓ Calculated KDE baseline\\n\")\n\n\n✓ Calculated KDE baseline\n\n\nThe kernel density estimate takes the point pattern of burglaries and smooths it into a continuous surface of risk. Extracting mean values from this surface for each grid cell gives a set of predicted counts that rely entirely on the historical spatial pattern rather than on Street Light Out features or distances. This serves as a useful benchmark because many police agencies rely on kernel density maps for near term forecasting."
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html",
+    "href": "weekly-notes/week-05-notes.html",
+    "title": "Week 5 Notes - Add title",
+    "section": "",
+    "text": "Linear regression estimates the systematic relationship between a response and one or more predictors using the statistical learning framework\nThe core idea is Y = f(X) + error, which supports prediction and inference\nPrediction and inference are different goals even when using the same model\nOrdinary least squares estimates coefficients by minimizing squared residuals\nResiduals show how far predictions are from observations and help diagnose model issues\nR² measures explained variation but does not guarantee predictive accuracy\nOverfitting happens when a model fits noise and performs poorly on new unseen data\nDiagnostics such as residual plots, heteroskedasticity tests, Q-Q plots, Cook’s Distance, and VIF are essential for checking assumptions"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-05-notes.html#key-concepts-learned",
+    "title": "Week 5 Notes - Add title",
+    "section": "",
+    "text": "Linear regression estimates the systematic relationship between a response and one or more predictors using the statistical learning framework\nThe core idea is Y = f(X) + error, which supports prediction and inference\nPrediction and inference are different goals even when using the same model\nOrdinary least squares estimates coefficients by minimizing squared residuals\nResiduals show how far predictions are from observations and help diagnose model issues\nR² measures explained variation but does not guarantee predictive accuracy\nOverfitting happens when a model fits noise and performs poorly on new unseen data\nDiagnostics such as residual plots, heteroskedasticity tests, Q-Q plots, Cook’s Distance, and VIF are essential for checking assumptions"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#coding-techniques",
+    "href": "weekly-notes/week-05-notes.html#coding-techniques",
+    "title": "Week 5 Notes - Add title",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nFitting simple and multiple regression models using lm\nTidying model output with broom functions library(broom) tidy(model1) augment(model1)\nCreating regression visualizations with ggplot ggplot(pa_data, aes(total_popE, median_incomeE)) + geom_point() + geom_smooth(method = “lm”)\nSplitting data into training and testing sets set.seed(123) n &lt;- nrow(pa_data) train_index &lt;- sample(1:n, size = 0.7 * n) train &lt;- pa_data[train_index, ] test &lt;- pa_data[-train_index, ]\nComputing RMSE to assess prediction error pred &lt;- predict(model1, newdata = test) rmse &lt;- sqrt(mean((test$median_incomeE - pred)^2))\nRunning 10-fold cross-validation using caret library(caret) train_ctrl &lt;- trainControl(method = “cv”, number = 10) cv_model &lt;- train(median_incomeE ~ total_popE, data = pa_data, method = “lm”, trControl = train_ctrl)\nChecking assumptions through residual plots, Breusch-Pagan tests, Cook’s Distance, and Q-Q plots"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#questions-challenges",
+    "href": "weekly-notes/week-05-notes.html#questions-challenges",
+    "title": "Week 5 Notes - Add title",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow to determine when a relationship is sufficiently linear for OLS\nHow to clearly interpret and communicate log-transformed or categorical models\nHow to decide when influential counties should be investigated or kept for policy relevance\nHow to improve predictive accuracy when R² is low but the model remains useful"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-05-notes.html#connections-to-policy",
+    "title": "Week 5 Notes - Add title",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nRegression supports estimating missing data, forecasting outcomes, and understanding key socioeconomic correlates\nPolicy examples include predicting income in undercounted areas or estimating housing value patterns\nEven good models can reinforce inequities if key variables encode structural bias\nDiagnostics prevent harmful misinterpretation, especially when outliers represent vulnerable populations"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#reflection",
+    "href": "weekly-notes/week-05-notes.html#reflection",
+    "title": "Week 5 Notes - Add title",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most interesting part was learning that a statistically strong model can still produce ethically problematic predictions\nResidual patterns helped me understand how models systematically underpredict or overpredict\nGoing forward I will use visual diagnostics, cross-validation, and ethical considerations before applying models to policy decisions"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html",
+    "href": "weekly-notes/week-06-notes.html",
+    "title": "Week 6 Notes - Regression Diagnostics and Improving Model Fit",
+    "section": "",
+    "text": "Regression relies on core assumptions including linearity, independent errors, constant variance, and normally distributed residuals\n\nViolating assumptions leads to biased estimates, unreliable predictions, or misleading inference\n\nResidual plots help identify patterns such as curvature, heteroskedasticity, and influential outliers\n\nInfluential points affect coefficient estimates and must be checked using Cook’s Distance, leverage, and standardized residuals\n\nTransformations such as log, square root, or polynomial terms can improve linear relationships\n\nAdding relevant predictors can reduce omitted variable bias but risks overfitting if not justified\n\nComparing models using AIC, BIC, RMSE, and adjusted R² helps identify more appropriate specifications"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-06-notes.html#key-concepts-learned",
+    "title": "Week 6 Notes - Regression Diagnostics and Improving Model Fit",
+    "section": "",
+    "text": "Regression relies on core assumptions including linearity, independent errors, constant variance, and normally distributed residuals\n\nViolating assumptions leads to biased estimates, unreliable predictions, or misleading inference\n\nResidual plots help identify patterns such as curvature, heteroskedasticity, and influential outliers\n\nInfluential points affect coefficient estimates and must be checked using Cook’s Distance, leverage, and standardized residuals\n\nTransformations such as log, square root, or polynomial terms can improve linear relationships\n\nAdding relevant predictors can reduce omitted variable bias but risks overfitting if not justified\n\nComparing models using AIC, BIC, RMSE, and adjusted R² helps identify more appropriate specifications"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#coding-techniques",
+    "href": "weekly-notes/week-06-notes.html#coding-techniques",
+    "title": "Week 6 Notes - Regression Diagnostics and Improving Model Fit",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nGenerating fitted values and residuals using augment library(broom) aug &lt;- augment(model)\nPlotting residuals vs fitted values to diagnose heteroskedasticity or nonlinearity ggplot(aug, aes(.fitted, .resid)) + geom_point(alpha = 0.6) + geom_hline(yintercept = 0, color = “red”) + theme_minimal()\nChecking for influential points using Cook’s Distance plot(model, which = 4)\nCreating Q-Q plots to check normality of residuals plot(model, which = 2)\nFitting models with log or polynomial transformations model_log &lt;- lm(log(median_incomeE) ~ log(total_popE), data = pa_data) model_poly &lt;- lm(median_incomeE ~ poly(total_popE, 2), data = pa_data)\nComparing model fit with RMSE and AIC rmse1 &lt;- sqrt(mean((aug$.resid)^2)) AIC(model1, model_log, model_poly)"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#questions-challenges",
+    "href": "weekly-notes/week-06-notes.html#questions-challenges",
+    "title": "Week 6 Notes - Regression Diagnostics and Improving Model Fit",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow to decide when a transformation is theoretically justified vs statistically convenient\nHow to interpret coefficients after log or polynomial transformations\nWhen to treat an influential county as a true outlier vs a meaningful data point that should remain\nHow to communicate diagnostic findings to policymakers who may not understand residuals or assumptions"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-06-notes.html#connections-to-policy",
+    "title": "Week 6 Notes - Regression Diagnostics and Improving Model Fit",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nPoor model diagnostics can lead to incorrect policy conclusions, especially when predicting economic or demographic outcomes\nInfluential points often represent meaningful real-world conditions such as small rural counties or high-growth urban areas\nDiagnostics help ensure transparency and reduce the risk of misallocating resources based on flawed models\nTransformations and improved fit increase the reliability of forecasts used in planning decisions"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#reflection",
+    "href": "weekly-notes/week-06-notes.html#reflection",
+    "title": "Week 6 Notes - Regression Diagnostics and Improving Model Fit",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most eye-opening part was understanding how easy it is to produce a regression that looks acceptable on paper but fails diagnostic checks\nI learned how patterns in residuals reveal deeper issues such as missing variables, nonlinearity, or structural differences across geographies\nI will apply this by routinely examining diagnostics, considering transformations carefully, and comparing multiple model specifications before making policy-relevant interpretations"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html",
+    "href": "weekly-notes/week-07-notes.html",
+    "title": "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation",
+    "section": "",
+    "text": "Progress bars from tidycensus and tigris clutter rendered HTML and should be suppressed using progress = FALSE or global options\nRegression workflow expands to include spatial diagnostics that check whether model errors are clustered in space\nSpatial clustering of errors indicates missing spatial variables, misspecification, or non-stationarity\nTobler’s First Law explains why nearby units often have similar outcomes or errors\nMoran’s I measures spatial autocorrelation and ranges from −1 to +1\nPositive Moran’s I indicates clustered errors, zero indicates randomness, and negative indicates dispersion\nSpatial weights define neighbor relationships and can use contiguity, distance, or k-nearest neighbors\nSpatial lag calculates the average value of a variable among an observation’s neighbors\nHigh Moran’s I in residuals suggests a need for spatial features, fixed effects, or improved model specifications\nSpatial lag/error econometric models are not used for prediction because of simultaneity, data leakage, and inability to forecast new observations"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-07-notes.html#key-concepts-learned",
+    "title": "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation",
+    "section": "",
+    "text": "Progress bars from tidycensus and tigris clutter rendered HTML and should be suppressed using progress = FALSE or global options\nRegression workflow expands to include spatial diagnostics that check whether model errors are clustered in space\nSpatial clustering of errors indicates missing spatial variables, misspecification, or non-stationarity\nTobler’s First Law explains why nearby units often have similar outcomes or errors\nMoran’s I measures spatial autocorrelation and ranges from −1 to +1\nPositive Moran’s I indicates clustered errors, zero indicates randomness, and negative indicates dispersion\nSpatial weights define neighbor relationships and can use contiguity, distance, or k-nearest neighbors\nSpatial lag calculates the average value of a variable among an observation’s neighbors\nHigh Moran’s I in residuals suggests a need for spatial features, fixed effects, or improved model specifications\nSpatial lag/error econometric models are not used for prediction because of simultaneity, data leakage, and inability to forecast new observations"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#coding-techniques",
+    "href": "weekly-notes/week-07-notes.html#coding-techniques",
+    "title": "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nSuppressing progress bars with progress = FALSE or by setting options globally options(tigris_progress = FALSE) options(tigris_use_cache = TRUE)\nCreating regression residuals and computing spatial lags aug &lt;- augment(model) aug\\(error_lag &lt;- lag.listw(weights, aug\\).resid)\nBuilding k-nearest neighbor weights coords &lt;- st_coordinates(boston_test) nb &lt;- knn2nb(knearneigh(coords, k = 5)) weights &lt;- nb2listw(nb, style = “W”)\nComputing Moran’s I with permutation test moran_test &lt;- moran.mc(boston_test\\(error, weights, nsim = 999)\nmoran_test\\)statistic moran_test$p.value\nMapping residuals to visually inspect clustering patterns using ggplot and geom_sf"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#questions-challenges",
+    "href": "weekly-notes/week-07-notes.html#questions-challenges",
+    "title": "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow to choose between contiguity, distance, and k-nearest neighbor weight matrices\nHow large of a neighborhood is appropriate when constructing spatial weights\nHow to interpret Moran’s I values when the magnitude is moderate but still statistically significant\nHow to distinguish between genuine spatial processes versus missing covariates\nWhen adding neighborhood fixed effects is sufficient versus when more sophisticated spatial models are needed"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-07-notes.html#connections-to-policy",
+    "title": "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nSpatial clustering in prediction errors can signal inequitable model performance across neighborhoods\nHousing prices, crime, transit access, and environmental exposure all exhibit spatial autocorrelation, so diagnostics are essential for responsible policy modeling\nMoran’s I helps identify where models underperform so regional planners can improve feature engineering and avoid biased planning outcomes\nSpatial diagnostics support transparency in evidence-based policymaking by showing whether models consistently mispredict certain communities"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#reflection",
+    "href": "weekly-notes/week-07-notes.html#reflection",
+    "title": "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most interesting insight was seeing how residual maps reveal hidden spatial patterns that standard regression diagnostics cannot detect\nMoran’s I provided a clear quantitative test for whether my model respects geographic structure\nI now understand why spatial lag models are not ideal for prediction and why feature engineering is preferred for applied planning work\nGoing forward, I will routinely compute spatial diagnostics, test multiple neighborhood definitions, and incorporate spatial features early in model design"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html",
+    "href": "weekly-notes/week-09-notes.html",
+    "title": "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction",
+    "section": "",
+    "text": "Spatial lag models include a term where the outcome depends on the average values of neighboring outcomes\n\nThis structure creates a circular dependency when predicting new observations because neighbors’ outcomes are also unknown\n\nSpatial lag models are appropriate for inference about spillover effects but not for forecasting or out-of-sample prediction\n\nTemporal prediction problems occur because new listings have no known neighbor sale prices\n\nTransfer prediction problems occur because lag parameters estimated in one city do not transfer to a different market\n\nSpatial features (distance to transit, number of parks, neighborhood income) are usable for prediction because they are always observable\n\nMoran’s I indicates spatial autocorrelation in residuals but should lead to better feature engineering, not adoption of spatial lag models\n\nMachine learning methods also cannot use neighbor outcomes as features because the values do not exist for new predictions"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-09-notes.html#key-concepts-learned",
+    "title": "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction",
+    "section": "",
+    "text": "Spatial lag models include a term where the outcome depends on the average values of neighboring outcomes\n\nThis structure creates a circular dependency when predicting new observations because neighbors’ outcomes are also unknown\n\nSpatial lag models are appropriate for inference about spillover effects but not for forecasting or out-of-sample prediction\n\nTemporal prediction problems occur because new listings have no known neighbor sale prices\n\nTransfer prediction problems occur because lag parameters estimated in one city do not transfer to a different market\n\nSpatial features (distance to transit, number of parks, neighborhood income) are usable for prediction because they are always observable\n\nMoran’s I indicates spatial autocorrelation in residuals but should lead to better feature engineering, not adoption of spatial lag models\n\nMachine learning methods also cannot use neighbor outcomes as features because the values do not exist for new predictions"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#coding-techniques",
+    "href": "weekly-notes/week-09-notes.html#coding-techniques",
+    "title": "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nUnderstanding lagsarlm model structure and how the spatial lag term is computed model_2024 &lt;- spatialreg::lagsarlm( log(price) ~ sqft + bedrooms + bathrooms, data = sales_2024, listw = neighbors_weights )\nDemonstrating circular dependency in prediction\nVisualizing dependency cycles using graph structures (mermaid diagrams)\nReplacing outcome-based lag features with spatially engineered predictors (buffer counts, distances, census attributes) orlando\\(dist_to_transit &lt;- get_transit_distance(orlando)\norlando\\)parks_500ft &lt;- count_parks_buffer(orlando, 500) orlando\\(median_income_tract &lt;- get_census_data(orlando)\norlando\\)predicted_price &lt;- predict(model, newdata = orlando)\nEmphasizing feature engineering as the preferred solution to spatial error clustering"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#questions-challenges",
+    "href": "weekly-notes/week-09-notes.html#questions-challenges",
+    "title": "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow to determine which spatial features best capture the missing spatial structure indicated by Moran’s I\nHow to select appropriate buffer distances for features such as parks, transit, or amenities\nHow to communicate to stakeholders that spatial lag models are unsuitable for prediction despite appearing “more spatial”\nWhen to re-estimate models for a new city versus when to reuse coefficients"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-09-notes.html#connections-to-policy",
+    "title": "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nUsing spatial lag models for forecasting housing prices, crime, or service demand can lead to flawed and unusable predictions\nPolicy decisions relying on predictions must use features that are observable at the time of forecasting\nSpatial clustering of errors signals gaps in spatial context, such as missing amenities, environmental factors, or fixed effects\nRobust feature engineering supports fairer and more transparent policy modeling"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#reflection",
+    "href": "weekly-notes/week-09-notes.html#reflection",
+    "title": "Week 9 Notes - Why Spatial Lag Models Don’t Work for Prediction",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most interesting takeaway was how clearly the circular dependency problem explains why SAR models cannot predict future values\nUnderstanding temporal and transfer prediction failures helped clarify when spatial econometric models are appropriate\nI now see the importance of improving spatial features rather than modifying the model structure\nGoing forward I will avoid recommending spatial lag or error models for prediction tasks and instead focus on engineered spatial context to reduce Moran’s I and improve model performance"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html",
+    "href": "weekly-notes/week-10-notes.html",
+    "title": "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves",
+    "section": "",
+    "text": "Logistic regression models the probability of a binary outcome instead of predicting a continuous value\n\nLinear regression fails for binary data because it predicts values outside 0 to 1 and violates key assumptions\n\nLogistic regression uses the logistic function to keep predictions between 0 and 1\n\nThe logit transformation converts probabilities into log-odds that follow a linear relationship with predictors\n\nCoefficients represent log-odds but exponentiated values give odds ratios that are easier to interpret\n\nLogistic regression outputs probabilities and requires selecting a threshold to convert into binary decisions\n\nDifferent thresholds produce different trade-offs between false positives and false negatives\n\nConfusion matrices summarize prediction outcomes into true positives, false positives, true negatives, and false negatives\n\nPerformance metrics include sensitivity, specificity, precision, and false positive rate\n\nROC curves visualize model performance across all thresholds\n\nAUC measures how well the model separates positive and negative cases regardless of threshold"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-10-notes.html#key-concepts-learned",
+    "title": "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves",
+    "section": "",
+    "text": "Logistic regression models the probability of a binary outcome instead of predicting a continuous value\n\nLinear regression fails for binary data because it predicts values outside 0 to 1 and violates key assumptions\n\nLogistic regression uses the logistic function to keep predictions between 0 and 1\n\nThe logit transformation converts probabilities into log-odds that follow a linear relationship with predictors\n\nCoefficients represent log-odds but exponentiated values give odds ratios that are easier to interpret\n\nLogistic regression outputs probabilities and requires selecting a threshold to convert into binary decisions\n\nDifferent thresholds produce different trade-offs between false positives and false negatives\n\nConfusion matrices summarize prediction outcomes into true positives, false positives, true negatives, and false negatives\n\nPerformance metrics include sensitivity, specificity, precision, and false positive rate\n\nROC curves visualize model performance across all thresholds\n\nAUC measures how well the model separates positive and negative cases regardless of threshold"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#coding-techniques",
+    "href": "weekly-notes/week-10-notes.html#coding-techniques",
+    "title": "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nFitting logistic regression using glm with a binomial family model &lt;- glm( outcome ~ x1 + x2 + x3, data = df, family = “binomial” ) summary(model)\nExtracting coefficients and converting them to odds ratios coefs &lt;- coef(model) exp(coefs)\nPredicting probabilities for new observations predict(model, newdata = df_new, type = “response”)\nCreating classification decisions using ifelse with a threshold df\\(pred &lt;- ifelse(df\\)prob &gt; 0.5, 1, 0)\nBuilding confusion matrices and performance metrics using caret confusionMatrix( as.factor(df\\(pred),\nas.factor(df\\)actual), positive = “1” )\nCreating ROC curves and computing AUC roc_obj &lt;- roc(df\\(actual, df\\)prob) auc(roc_obj) ggroc(roc_obj)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#questions-challenges",
+    "href": "weekly-notes/week-10-notes.html#questions-challenges",
+    "title": "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow to determine the “best” probability threshold for a specific policy context\nHow to communicate trade-offs between false positives and false negatives to decision-makers\nWhen odds ratios are meaningful for interpretation and when marginal effects might be clearer\nHow to handle rare outcomes where sensitivity or precision becomes unstable\nHow to avoid overfitting when predictors strongly separate the classes"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-10-notes.html#connections-to-policy",
+    "title": "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nThreshold choice depends on costs and consequences, not on statistics alone\nInjustice can occur when thresholds are chosen without considering who is affected by false positives or false negatives\nLogistic regression appears objective but depends heavily on human decisions about features, thresholds, and evaluation metrics\nROC curves help policymakers compare models by showing discrimination ability independently of a specific threshold\nApplications include recidivism risk, disease prediction, loan approval, program eligibility, and fraud detection"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#reflection",
+    "href": "weekly-notes/week-10-notes.html#reflection",
+    "title": "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most interesting insight was how logistic regression shifts the focus from predicting values to managing decisions under uncertainty\nUnderstanding confusion matrices and ROC curves made it clear that prediction accuracy is multidimensional\nI now appreciate how model evaluation must reflect policy priorities rather than default thresholds\nMoving forward I will justify threshold choices, report multiple metrics, and carefully consider the ethical implications of classification decisions"
   }
 ]

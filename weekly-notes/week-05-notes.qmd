@@ -1,23 +1,59 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 5 Notes - Add title"
+date: "2025-10-06"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Linear regression estimates the systematic relationship between a response and one or more predictors using the statistical learning framework
+- The core idea is Y = f(X) + error, which supports prediction and inference
+- Prediction and inference are different goals even when using the same model
+- Ordinary least squares estimates coefficients by minimizing squared residuals
+- Residuals show how far predictions are from observations and help diagnose model issues
+- R² measures explained variation but does not guarantee predictive accuracy
+- Overfitting happens when a model fits noise and performs poorly on new unseen data
+- Diagnostics such as residual plots, heteroskedasticity tests, Q-Q plots, Cook’s Distance, and VIF are essential for checking assumptions
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Fitting simple and multiple regression models using `lm`
+- Tidying model output with broom functions
+library(broom)
+tidy(model1)
+augment(model1)
+- Creating regression visualizations with ggplot
+ggplot(pa_data, aes(total_popE, median_incomeE)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+- Splitting data into training and testing sets
+set.seed(123)
+n <- nrow(pa_data)
+train_index <- sample(1:n, size = 0.7 * n)
+train <- pa_data[train_index, ]
+test <- pa_data[-train_index, ]
+- Computing RMSE to assess prediction error
+pred <- predict(model1, newdata = test)
+rmse <- sqrt(mean((test$median_incomeE - pred)^2))
+- Running 10-fold cross-validation using caret
+library(caret)
+train_ctrl <- trainControl(method = "cv", number = 10)
+cv_model <- train(median_incomeE ~ total_popE,
+                  data = pa_data,
+                  method = "lm",
+                  trControl = train_ctrl)
+- Checking assumptions through residual plots, Breusch-Pagan tests, Cook’s Distance, and Q-Q plots
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How to determine when a relationship is sufficiently linear for OLS
+- How to clearly interpret and communicate log-transformed or categorical models
+- How to decide when influential counties should be investigated or kept for policy relevance
+- How to improve predictive accuracy when R² is low but the model remains useful
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Regression supports estimating missing data, forecasting outcomes, and understanding key socioeconomic correlates
+- Policy examples include predicting income in undercounted areas or estimating housing value patterns
+- Even good models can reinforce inequities if key variables encode structural bias
+- Diagnostics prevent harmful misinterpretation, especially when outliers represent vulnerable populations
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most interesting part was learning that a statistically strong model can still produce ethically problematic predictions
+- Residual patterns helped me understand how models systematically underpredict or overpredict
+- Going forward I will use visual diagnostics, cross-validation, and ethical considerations before applying models to policy decisions

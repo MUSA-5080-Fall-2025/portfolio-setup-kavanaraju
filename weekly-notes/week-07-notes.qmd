@@ -1,23 +1,52 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 7 Notes - Model Diagnostics & Spatial Autocorrelation"
+date: "2025-10-21"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Progress bars from tidycensus and tigris clutter rendered HTML and should be suppressed using progress = FALSE or global options
+- Regression workflow expands to include spatial diagnostics that check whether model errors are clustered in space
+- Spatial clustering of errors indicates missing spatial variables, misspecification, or non-stationarity
+- Tobler’s First Law explains why nearby units often have similar outcomes or errors
+- Moran’s I measures spatial autocorrelation and ranges from −1 to +1
+- Positive Moran’s I indicates clustered errors, zero indicates randomness, and negative indicates dispersion
+- Spatial weights define neighbor relationships and can use contiguity, distance, or k-nearest neighbors
+- Spatial lag calculates the average value of a variable among an observation’s neighbors
+- High Moran’s I in residuals suggests a need for spatial features, fixed effects, or improved model specifications
+- Spatial lag/error econometric models are not used for prediction because of simultaneity, data leakage, and inability to forecast new observations
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Suppressing progress bars with progress = FALSE or by setting options globally
+options(tigris_progress = FALSE)
+options(tigris_use_cache = TRUE)
+- Creating regression residuals and computing spatial lags
+aug <- augment(model)
+aug$error_lag <- lag.listw(weights, aug$.resid)
+- Building k-nearest neighbor weights
+coords <- st_coordinates(boston_test)
+nb <- knn2nb(knearneigh(coords, k = 5))
+weights <- nb2listw(nb, style = "W")
+- Computing Moran’s I with permutation test
+moran_test <- moran.mc(boston_test$error, weights, nsim = 999)
+moran_test$statistic
+moran_test$p.value
+- Mapping residuals to visually inspect clustering patterns using ggplot and geom_sf
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How to choose between contiguity, distance, and k-nearest neighbor weight matrices
+- How large of a neighborhood is appropriate when constructing spatial weights
+- How to interpret Moran’s I values when the magnitude is moderate but still statistically significant
+- How to distinguish between genuine spatial processes versus missing covariates
+- When adding neighborhood fixed effects is sufficient versus when more sophisticated spatial models are needed
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Spatial clustering in prediction errors can signal inequitable model performance across neighborhoods
+- Housing prices, crime, transit access, and environmental exposure all exhibit spatial autocorrelation, so diagnostics are essential for responsible policy modeling
+- Moran’s I helps identify where models underperform so regional planners can improve feature engineering and avoid biased planning outcomes
+- Spatial diagnostics support transparency in evidence-based policymaking by showing whether models consistently mispredict certain communities
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most interesting insight was seeing how residual maps reveal hidden spatial patterns that standard regression diagnostics cannot detect
+- Moran’s I provided a clear quantitative test for whether my model respects geographic structure
+- I now understand why spatial lag models are not ideal for prediction and why feature engineering is preferred for applied planning work
+- Going forward, I will routinely compute spatial diagnostics, test multiple neighborhood definitions, and incorporate spatial features early in model design

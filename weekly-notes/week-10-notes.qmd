@@ -1,23 +1,63 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 10 Notes - Logistic Regression, Thresholds, and ROC Curves"
+date: "2025-11-10"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Logistic regression models the probability of a binary outcome instead of predicting a continuous value  
+- Linear regression fails for binary data because it predicts values outside 0 to 1 and violates key assumptions  
+- Logistic regression uses the logistic function to keep predictions between 0 and 1  
+- The logit transformation converts probabilities into log-odds that follow a linear relationship with predictors  
+- Coefficients represent log-odds but exponentiated values give odds ratios that are easier to interpret  
+- Logistic regression outputs probabilities and requires selecting a threshold to convert into binary decisions  
+- Different thresholds produce different trade-offs between false positives and false negatives  
+- Confusion matrices summarize prediction outcomes into true positives, false positives, true negatives, and false negatives  
+- Performance metrics include sensitivity, specificity, precision, and false positive rate  
+- ROC curves visualize model performance across all thresholds  
+- AUC measures how well the model separates positive and negative cases regardless of threshold
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Fitting logistic regression using glm with a binomial family
+model <- glm(
+  outcome ~ x1 + x2 + x3,
+  data = df,
+  family = "binomial"
+)
+summary(model)
+- Extracting coefficients and converting them to odds ratios
+coefs <- coef(model)
+exp(coefs)
+- Predicting probabilities for new observations
+predict(model, newdata = df_new, type = "response")
+- Creating classification decisions using ifelse with a threshold
+df$pred <- ifelse(df$prob > 0.5, 1, 0)
+- Building confusion matrices and performance metrics using caret
+confusionMatrix(
+  as.factor(df$pred),
+  as.factor(df$actual),
+  positive = "1"
+)
+- Creating ROC curves and computing AUC
+roc_obj <- roc(df$actual, df$prob)
+auc(roc_obj)
+ggroc(roc_obj)
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How to determine the “best” probability threshold for a specific policy context
+- How to communicate trade-offs between false positives and false negatives to decision-makers
+- When odds ratios are meaningful for interpretation and when marginal effects might be clearer
+- How to handle rare outcomes where sensitivity or precision becomes unstable
+- How to avoid overfitting when predictors strongly separate the classes
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Threshold choice depends on costs and consequences, not on statistics alone
+- Injustice can occur when thresholds are chosen without considering who is affected by false positives or false negatives
+- Logistic regression appears objective but depends heavily on human decisions about features, thresholds, and evaluation metrics
+- ROC curves help policymakers compare models by showing discrimination ability independently of a specific threshold
+- Applications include recidivism risk, disease prediction, loan approval, program eligibility, and fraud detection
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most interesting insight was how logistic regression shifts the focus from predicting values to managing decisions under uncertainty
+- Understanding confusion matrices and ROC curves made it clear that prediction accuracy is multidimensional
+- I now appreciate how model evaluation must reflect policy priorities rather than default thresholds
+- Moving forward I will justify threshold choices, report multiple metrics, and carefully consider the ethical implications of classification decisions
