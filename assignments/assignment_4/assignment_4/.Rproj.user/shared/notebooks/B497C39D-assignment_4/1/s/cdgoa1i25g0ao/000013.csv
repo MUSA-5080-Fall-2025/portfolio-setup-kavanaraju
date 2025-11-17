@@ -1,0 +1,15 @@
+"0","# Show results"
+"0","cv_results %>%"
+"0","  arrange(desc(mae)) %>%"
+"0","  kable("
+"0","    digits = 2,"
+"0","    caption = ""LOGO CV Results by District"") %>%"
+"0","  kable_styling(bootstrap_options = c(""striped"", ""hover""))"
+"2","Warning in file(file, ifelse(append, ""a"", ""w"")) :"
+"2","
+ "
+"2"," cannot open file 'C:/Users/kavan/OneDrive - PennO365/CPLN FALL 2025/CPLN 5920_Public Policy Analytics/portfolio-setup-kavanaraju/assignments/assignment_4/assignment_4/.Rproj.user/shared/notebooks/B497C39D-assignment_4/1/BC7247253f3fa269/cdgoa1i25g0ao_t\_rs_html_deps_fb3ceea2828.json': No such file or directory
+"
+"2","Error in file(file, ifelse(append, ""a"", ""w"")) : 
+  cannot open the connection
+"

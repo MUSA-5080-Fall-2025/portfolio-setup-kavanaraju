@@ -940,4 +940,5 @@ You've successfully built a spatial predictive model for burglaries using:
 ✓ Spatial cross-validation (LOGO)\
 ✓ Comparison to baseline (KDE)
 :::
+
 ::::::::::

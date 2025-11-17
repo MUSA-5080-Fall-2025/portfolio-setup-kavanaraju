@@ -1,0 +1,38 @@
+"0","# Get centroids of ""High-High"" cells (hot spots)"
+"0","hotspots <- fishnet %>%"
+"0","  filter(moran_class == ""High-High"") %>%"
+"0","  st_centroid()"
+"2","Warning:"
+"2"," st_centroid assumes attributes are constant over geometries
+"
+"0","# Calculate distance from each cell to nearest hot spot"
+"0","if (nrow(hotspots) > 0) {"
+"0","  fishnet <- fishnet %>%"
+"0","    mutate("
+"0","      dist_to_hotspot = as.numeric("
+"0","        st_distance(st_centroid(fishnet), hotspots %>% st_union())"
+"0","      )"
+"0","    )"
+"0","  "
+"0","  cat(""✓ Calculated distance to street light out complaints\n"")"
+"0","  cat(""  - Number of hot spot cells:"", nrow(hotspots), ""\n"")"
+"0","} else {"
+"0","  fishnet <- fishnet %>%"
+"0","    mutate(dist_to_hotspot = 0)"
+"0","  cat(""⚠ No significant hot spots found\n"")"
+"0","}"
+"2","Warning:"
+"2"," [38;5;252mThere was 1 warning in `stopifnot()`.[39m
+[38;5;252m[36mℹ[38;5;252m In argument: `dist_to_hotspot = as.numeric(st_distance(st_centroid(fishnet), hotspots
+  %>% st_union()))`.[39m
+Caused by warning:
+[33m![39m st_centroid assumes attributes are constant over geometries
+"
+"1","✓ Calculated distance to street light out complaints
+"
+"1","  - Number of hot spot cells:"
+"1"," "
+"1","212"
+"1"," "
+"1","
+"

@@ -27,6 +27,8 @@ website:
             text: "Assignment 3: Technical Appendix"
           - href: assignments/assignment_3/midterm_presentation.qmd
             text: "Assignment 3: Presentation"
+          - href: assignments/assignment_4/assignment_4/assignment_4.qmd
+            text: "Assignment 4: Spatial Predictive Analysis" 
 
 format:
   html:
