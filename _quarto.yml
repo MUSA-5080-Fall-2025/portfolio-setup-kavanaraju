@@ -41,7 +41,7 @@ website:
             text: "Assignment 3: Presentation"
           - href: assignments/assignment_4/assignment_4/assignment_4.qmd
             text: "Assignment 4: Spatial Predictive Analysis"
-          - href: assignments/assignment_5/assignment_5/assignment_5.qmd
+          - href: assignments/assignment_5/assignment_5.qmd
             text: "Assignment 5: Space-Time Prediction of Bike Share Demand"
 
 format:
