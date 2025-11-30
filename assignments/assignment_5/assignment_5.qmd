@@ -20,32 +20,27 @@ execute:
 
 # Introduction
 
-Philadelphia's Indego bike share system faces a critical operational challenge: **rebalancing bikes to meet anticipated demand**. Operations managers must decide at 6:00 AM which of 200+ stations will run out of bikes by the morning rush, with limited trucks and staff to move bikes efficiently.
+Philadelphia's Indego bike share system faces a critical operational challenge: rebalancing bikes to meet anticipated demand. Operations managers must decide at 6:00 AM which of 200+ stations will run out of bikes by the morning rush, with limited trucks and staff to move bikes efficiently.
 
-This assignment applies space-time predictive modeling to forecast hourly bike share demand at station-level granularity. Following the methodology established with Q1 2025 winter data in class, I analyze **Q3 2024 (July-September)** to understand how summer peak season affects prediction accuracy compared to winter baseline patterns.
+This assignment applies space-time predictive modeling to forecast hourly bike share demand at station-level granularity. Following the methodology established with Q1 2025 winter data in class, I analyze Q3 2024 (July-September) to understand how summer peak season affects prediction accuracy compared to winter baseline patterns.
 
 ## Why Q3 2024?
 
-I chose Q3 2024 to test a specific hypothesis about ridership volume and prediction accuracy. Summer represents the **opposite seasonal extreme from Q1 2025 winter**:
+I chose Q3 2024 for several reasons. First, summer represents the opposite seasonal extreme from Q1 2025 winter: highest annual ridership, minimal weather disruptions (no snow or ice events), significant tourist activity, and unique special events like July 4th and Labor Day weekend. Second, testing whether the substantial ridership increase from winter provides better predictions (more data, stronger patterns) or worse predictions (more complexity, diverse user types, capacity constraints).
 
--   **Highest annual ridership**: Summer peak season with nearly double Q1's daily trips
--   **Minimal weather disruptions**: No snow/ice events that create volatile patterns
--   **Different demand drivers**: Tourist activity, outdoor recreation, special events (July 4th, Labor Day)
--   **Operational stress test**: Can models handle high-volume periods?
-
-The research question: **Does higher ridership volume make predictions easier (more data, stronger patterns) or harder (more complexity, capacity constraints, diverse user types)?**
+The research question: **Does higher ridership volume make predictions easier or harder?**
 
 ## Methodology Overview
 
-The core methodology aggregates individual trips into a **space-time panel** where each observation represents demand at a specific station during a specific hour. I build five baseline models with progressively more complex features, engineer new summer-specific features based on error analysis, and test whether Poisson regression designed for count data outperforms ordinary least squares linear regression.
+The core methodology aggregates individual trips into a space-time panel where each observation represents demand at a specific station during a specific hour. I build five baseline models with progressively more complex features, engineer new summer-specific features based on error analysis, and test whether Poisson regression designed for count data outperforms ordinary least squares linear regression.
 
-Model evaluation uses **temporal validation**, splitting each quarter into training and test periods to assess generalizability. I analyze prediction errors across spatial, temporal, and demographic dimensions to identify where models struggle and assess equity implications. The analysis concludes with direct comparison of Q1 2025 winter and Q3 2024 summer performance.
+Model evaluation uses temporal validation, splitting each quarter into training and test periods to assess generalizability. I analyze prediction errors across spatial, temporal, and demographic dimensions to identify where models struggle and assess equity implications. The analysis concludes with direct comparison of Q1 2025 winter and Q3 2024 summer performance.
 
 ------------------------------------------------------------------------
 
 # Setup
 
-```{r setup}
+```{r load_libraries}
 #| message: false
 #| warning: false
 
@@ -222,7 +217,7 @@ ggplot(daily_combined, aes(x = date, y = trips, color = quarter)) +
                                  "Q3 2024 (Summer)" = "#08519c")) +
   labs(
     title = "Daily Ridership: Q1 2025 Winter vs Q3 2024 Summer",
-    subtitle = paste0("Summer averages ~2× higher ridership (", pct_diff, "% increase) but with different volatility patterns"),
+    subtitle = paste0("Summer averages ", pct_diff, "% higher ridership (nearly double!) with different volatility patterns"),
     x = "Date",
     y = "Daily Trips",
     color = "Quarter",
@@ -232,7 +227,7 @@ ggplot(daily_combined, aes(x = date, y = trips, color = quarter)) +
   theme(legend.position = "bottom")
 ```
 
-**Key Observation**: Summer shows dramatically higher ridership but different patterns. Winter has volatile swings (snow events, warm spikes). Summer shows more consistent baseline with holiday dips. This sets up our research question: **does higher volume with different patterns make prediction harder or easier?**
+**Key Observation**: Summer shows dramatically higher ridership — nearly double Q1 levels (98% increase). Winter has volatile swings from snow events and warm spikes. Summer shows more consistent baseline with holiday dips. This sets up our research question: **does nearly double the volume with different patterns make prediction harder or easier?**
 
 ## 1.4 Process Q3 2024 Data
 
@@ -302,7 +297,7 @@ kable(event_comparison,
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-**Finding**: Summer holidays (July 4th, Labor Day) show **lower** ridership (\~10-15% below typical) because they eliminate commute trips while only modestly increasing recreational trips. This contrasts sharply with Q1 2025's Eagles Super Bowl parade which created a massive spike. **Different seasonal patterns require different feature engineering.**
+**Finding**: Summer holidays (July 4th, Labor Day) show **lower** ridership (\~10-15% below typical) because they eliminate commute trips while only modestly increasing recreational trips. This contrasts sharply with Q1 2025's Eagles Super Bowl parade which created a massive spike. Different seasonal patterns require different feature engineering.
 
 ## 1.6 Hourly Patterns Comparison
 
@@ -355,26 +350,37 @@ ggplot(hourly_combined, aes(x = hour, y = avg_trips, color = quarter, linetype =
   theme(legend.position = "bottom")
 ```
 
-**Finding**: Both quarters show similar **temporal structure** (AM/PM peaks on weekdays, distributed patterns on weekends), but summer operates at consistently higher volumes. This suggests core demand drivers (commuting) remain similar, but overall activity level differs substantially.
+**Finding**: Both quarters show similar temporal structure (AM/PM peaks on weekdays, distributed patterns on weekends), but summer operates at consistently higher volumes. This suggests core demand drivers (commuting) remain similar, but overall activity level differs substantially.
 
-## 1.7-1.9 Spatial Context & Panel Creation
+## 1.7 Get Philadelphia Spatial Context
 
-*(Same workflow as class: census join, weather data, complete panel with lags)*
-
-```{r spatial_and_panel}
+```{r load_census}
 #| message: false
-#| include: false
 
-# Get census data (same as class)
+# Get Philadelphia census tracts with demographic variables
 philly_census <- get_acs(
   geography = "tract",
-  variables = c("B01003_001", "B19013_001", "B08301_001", "B08301_010", "B02001_002", "B25077_001"),
-  state = "PA", county = "Philadelphia", year = 2022,
-  geometry = TRUE, output = "wide"
+  variables = c(
+    "B01003_001",  # Total population
+    "B19013_001",  # Median household income
+    "B08301_001",  # Total commuters
+    "B08301_010",  # Commute by transit
+    "B02001_002",  # White alone
+    "B25077_001"   # Median home value
+  ),
+  state = "PA",
+  county = "Philadelphia",
+  year = 2022,
+  geometry = TRUE,
+  output = "wide"
 ) %>%
   rename(
-    Total_Pop = B01003_001E, Med_Inc = B19013_001E, Total_Commuters = B08301_001E,
-    Transit_Commuters = B08301_010E, White_Pop = B02001_002E, Med_Home_Value = B25077_001E
+    Total_Pop = B01003_001E,
+    Med_Inc = B19013_001E,
+    Total_Commuters = B08301_001E,
+    Transit_Commuters = B08301_010E,
+    White_Pop = B02001_002E,
+    Med_Home_Value = B25077_001E
   ) %>%
   mutate(
     Percent_Taking_Transit = (Transit_Commuters / Total_Commuters) * 100,
@@ -382,25 +388,56 @@ philly_census <- get_acs(
   ) %>%
   st_transform(crs = 4326)
 
-# Join to Q3 stations, filter to residential
+cat("Loaded", nrow(philly_census), "census tracts\n")
+```
+
+## 1.8 Join Census to Q3 Stations
+
+```{r join_census_q3}
+#| message: false
+
+# Create spatial points for Q3 stations
 stations_sf_q3 <- indego_q3 %>%
   distinct(start_station, start_lat, start_lon) %>%
   filter(!is.na(start_lat), !is.na(start_lon)) %>%
   st_as_sf(coords = c("start_lon", "start_lat"), crs = 4326)
 
+# Spatial join to census tracts
 stations_census_q3 <- st_join(stations_sf_q3, philly_census, left = TRUE) %>%
   st_drop_geometry()
 
-valid_stations_q3 <- stations_census_q3 %>% filter(!is.na(Med_Inc)) %>% pull(start_station)
+# Filter to residential stations (those that matched to census tracts)
+valid_stations_q3 <- stations_census_q3 %>%
+  filter(!is.na(Med_Inc)) %>%
+  pull(start_station)
 
+# Filter trip data to residential stations only
 indego_census_q3 <- indego_q3 %>%
   filter(start_station %in% valid_stations_q3) %>%
-  left_join(stations_census_q3 %>% select(start_station, Med_Inc, Percent_Taking_Transit, Percent_White, Total_Pop), 
-            by = "start_station")
+  left_join(
+    stations_census_q3 %>% 
+      select(start_station, Med_Inc, Percent_Taking_Transit, 
+             Percent_White, Total_Pop),
+    by = "start_station"
+  )
 
-# Get Q3 weather
-weather_data_q3 <- riem_measures(station = "PHL", date_start = "2024-07-01", date_end = "2024-09-30")
+cat("Filtered to", length(valid_stations_q3), "residential stations\n")
+cat("Retained", format(nrow(indego_census_q3), big.mark = ","), "trips\n")
+```
 
+## 1.9 Get Weather Data for Q3 2024
+
+```{r get_weather_q3}
+#| message: false
+
+# Download Q3 2024 weather from Philadelphia Airport (KPHL)
+weather_data_q3 <- riem_measures(
+  station = "PHL",
+  date_start = "2024-07-01",
+  date_end = "2024-09-30"
+)
+
+# Process weather data
 weather_complete_q3 <- weather_data_q3 %>%
   mutate(
     interval60 = floor_date(valid, unit = "hour"),
@@ -413,80 +450,183 @@ weather_complete_q3 <- weather_data_q3 %>%
   complete(interval60 = seq(min(interval60), max(interval60), by = "hour")) %>%
   fill(Temperature, Precipitation, Wind_Speed, .direction = "down")
 
-# Create complete panel (same workflow as class)
+cat("✓ Q3 Weather data complete\n")
+summary(weather_complete_q3 %>% select(Temperature, Precipitation))
+```
+
+## 1.10 Create Space-Time Panel for Q3 2024
+
+```{r aggregate_trips_q3}
+# Count trips by station-hour
+# Group by demographics so they carry forward cleanly
 trips_panel_q3 <- indego_census_q3 %>%
-  group_by(interval60, start_station, start_lat, start_lon, Med_Inc, Percent_Taking_Transit, Percent_White, Total_Pop) %>%
+  group_by(interval60, start_station, start_lat, start_lon,
+           Med_Inc, Percent_Taking_Transit, Percent_White, Total_Pop) %>%
   summarize(Trip_Count = n(), .groups = "drop")
 
+cat("Initial panel observations:", format(nrow(trips_panel_q3), big.mark = ","), "\n")
+cat("Unique stations:", length(unique(trips_panel_q3$start_station)), "\n")
+cat("Unique hours:", length(unique(trips_panel_q3$interval60)), "\n")
+```
+
+```{r complete_panel_q3}
+# Extract station attributes FIRST to avoid duplicate column issues
 station_attributes_q3 <- trips_panel_q3 %>%
   group_by(start_station) %>%
   summarize(
-    start_lat = first(start_lat), start_lon = first(start_lon),
-    Med_Inc = first(Med_Inc), Percent_Taking_Transit = first(Percent_Taking_Transit),
-    Percent_White = first(Percent_White), Total_Pop = first(Total_Pop),
+    start_lat = first(start_lat),
+    start_lon = first(start_lon),
+    Med_Inc = first(Med_Inc),
+    Percent_Taking_Transit = first(Percent_Taking_Transit),
+    Percent_White = first(Percent_White),
+    Total_Pop = first(Total_Pop),
     .groups = "drop"
   )
 
+# Create complete panel (all station-hour combinations)
+# This ensures we have explicit zeros for station-hours with no trips
 study_panel_q3 <- expand.grid(
   interval60 = unique(trips_panel_q3$interval60),
   start_station = unique(trips_panel_q3$start_station),
   stringsAsFactors = FALSE
 ) %>%
-  left_join(trips_panel_q3 %>% select(interval60, start_station, Trip_Count), by = c("interval60", "start_station")) %>%
+  # Join trip counts ONLY (not demographics to avoid duplicates)
+  left_join(
+    trips_panel_q3 %>% select(interval60, start_station, Trip_Count), 
+    by = c("interval60", "start_station")
+  ) %>%
+  # Replace NA trip counts with 0
   mutate(Trip_Count = replace_na(Trip_Count, 0)) %>%
-  left_join(station_attributes_q3, by = "start_station") %>%
+  # NOW join station attributes separately
+  left_join(station_attributes_q3, by = "start_station")
+
+cat("Complete panel rows:", format(nrow(study_panel_q3), big.mark = ","), "\n")
+cat("Zero observations:", sum(study_panel_q3$Trip_Count == 0),
+    "(", round(sum(study_panel_q3$Trip_Count == 0)/nrow(study_panel_q3)*100, 1), "%)\n")
+```
+
+```{r add_features_q3}
+# Add time features and join weather data
+study_panel_q3 <- study_panel_q3 %>%
   mutate(
-    week = week(interval60), month = month(interval60, label = TRUE),
-    dotw = wday(interval60, label = TRUE), hour = hour(interval60),
-    date = as.Date(interval60), weekend = ifelse(dotw %in% c("Sat", "Sun"), 1, 0),
+    week = week(interval60),
+    month = month(interval60, label = TRUE),
+    dotw = wday(interval60, label = TRUE),
+    hour = hour(interval60),
+    date = as.Date(interval60),
+    weekend = ifelse(dotw %in% c("Sat", "Sun"), 1, 0),
     rush_hour = ifelse(hour %in% c(7, 8, 9, 16, 17, 18), 1, 0)
   ) %>%
   left_join(weather_complete_q3, by = "interval60")
 
-# Add temporal lags
+# Check for missing weather
+cat("Missing weather obs:", sum(is.na(study_panel_q3$Temperature)), "\n")
+```
+
+## 1.11 Create Temporal Lag Variables
+
+```{r create_lags_q3}
+# Sort by station and time to ensure proper lag calculation
 study_panel_q3 <- study_panel_q3 %>%
-  arrange(start_station, interval60) %>%
+  arrange(start_station, interval60)
+
+# Create lag variables WITHIN each station
+study_panel_q3 <- study_panel_q3 %>%
   group_by(start_station) %>%
   mutate(
     lag1Hour = lag(Trip_Count, 1),
+    lag2Hours = lag(Trip_Count, 2),
     lag3Hours = lag(Trip_Count, 3),
+    lag12Hours = lag(Trip_Count, 12),
     lag1day = lag(Trip_Count, 24)
   ) %>%
   ungroup()
 
-study_panel_complete_q3 <- study_panel_q3 %>% filter(!is.na(lag1day))
+# Remove rows with NA lags (first 24 hours for each station)
+study_panel_complete_q3 <- study_panel_q3 %>%
+  filter(!is.na(lag1day))
 
-# Train/test split: weeks 27-35 train, weeks 36-39 test
-early_stations_q3 <- study_panel_complete_q3 %>% filter(week < 36, Trip_Count > 0) %>% distinct(start_station) %>% pull(start_station)
-late_stations_q3 <- study_panel_complete_q3 %>% filter(week >= 36, Trip_Count > 0) %>% distinct(start_station) %>% pull(start_station)
-common_stations_q3 <- intersect(early_stations_q3, late_stations_q3)
-
-study_panel_complete_q3 <- study_panel_complete_q3 %>% filter(start_station %in% common_stations_q3)
-
-train_q3 <- study_panel_complete_q3 %>% filter(week < 36) %>%
-  mutate(dotw_simple = factor(dotw, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
-
-test_q3 <- study_panel_complete_q3 %>% filter(week >= 36) %>%
-  mutate(dotw_simple = factor(dotw, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
-
-contrasts(train_q3$dotw_simple) <- contr.treatment(7)
-contrasts(test_q3$dotw_simple) <- contr.treatment(7)
+cat("Rows after removing NA lags:", format(nrow(study_panel_complete_q3), big.mark = ","), "\n")
 ```
 
-## 1.10 Build Five Baseline Models (Q3 2024)
+## 1.12 Temporal Train/Test Split
 
-```{r models_q3}
+```{r temporal_split_q3}
+# Q3 2024 spans weeks 27-39 (July-September in calendar year)
+# Train on weeks 27-35 (July 1 - early September)
+# Test on weeks 36-39 (rest of September)
+
+# Identify which stations have trips in BOTH periods
+early_stations_q3 <- study_panel_complete_q3 %>%
+  filter(week < 36) %>%
+  filter(Trip_Count > 0) %>%
+  distinct(start_station) %>%
+  pull(start_station)
+
+late_stations_q3 <- study_panel_complete_q3 %>%
+  filter(week >= 36) %>%
+  filter(Trip_Count > 0) %>%
+  distinct(start_station) %>%
+  pull(start_station)
+
+# Keep only common stations
+common_stations_q3 <- intersect(early_stations_q3, late_stations_q3)
+
+cat("Stations in early period:", length(early_stations_q3), "\n")
+cat("Stations in late period:", length(late_stations_q3), "\n")
+cat("Common stations (used for modeling):", length(common_stations_q3), "\n")
+
+# Filter to common stations and create train/test splits
+study_panel_complete_q3 <- study_panel_complete_q3 %>%
+  filter(start_station %in% common_stations_q3)
+
+train_q3 <- study_panel_complete_q3 %>%
+  filter(week < 36) %>%
+  mutate(dotw_simple = factor(dotw, 
+                               levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
+
+test_q3 <- study_panel_complete_q3 %>%
+  filter(week >= 36) %>%
+  mutate(dotw_simple = factor(dotw, 
+                               levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
+
+# Set contrasts to treatment coding (Monday as baseline)
+contrasts(train_q3$dotw_simple) <- contr.treatment(7)
+contrasts(test_q3$dotw_simple) <- contr.treatment(7)
+
+cat("\nQ3 Training observations:", format(nrow(train_q3), big.mark = ","), "\n")
+cat("Q3 Testing observations:", format(nrow(test_q3), big.mark = ","), "\n")
+cat("Training date range:", min(train_q3$date), "to", max(train_q3$date), "\n")
+cat("Testing date range:", min(test_q3$date), "to", max(test_q3$date), "\n")
+```
+
+## 1.13 Build Five Baseline Models (Q3 2024)
+
+```{r model1_q3}
+# Model 1: Time + Weather (baseline)
 model1_q3 <- lm(
   Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation,
   data = train_q3
 )
 
+cat("Model 1 Q3: Time + Weather\n")
+cat("R-squared:", round(summary(model1_q3)$r.squared, 4), "\n")
+```
+
+```{r model2_q3}
+# Model 2: Add Temporal Lags
 model2_q3 <- lm(
   Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
     lag1Hour + lag3Hours + lag1day,
   data = train_q3
 )
 
+cat("Model 2 Q3: + Temporal Lags\n")
+cat("R-squared:", round(summary(model2_q3)$r.squared, 4), "\n")
+```
+
+```{r model3_q3}
+# Model 3: Add Demographics
 model3_q3 <- lm(
   Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
     lag1Hour + lag3Hours + lag1day +
@@ -494,6 +634,12 @@ model3_q3 <- lm(
   data = train_q3
 )
 
+cat("Model 3 Q3: + Demographics\n")
+cat("R-squared:", round(summary(model3_q3)$r.squared, 4), "\n")
+```
+
+```{r model4_q3}
+# Model 4: Add Station Fixed Effects
 model4_q3 <- lm(
   Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
     lag1Hour + lag3Hours + lag1day +
@@ -502,6 +648,12 @@ model4_q3 <- lm(
   data = train_q3
 )
 
+cat("Model 4 Q3: + Station Fixed Effects\n")
+cat("R-squared:", round(summary(model4_q3)$r.squared, 4), "\n")
+```
+
+```{r model5_q3}
+# Model 5: Add Rush Hour Interaction
 model5_q3 <- lm(
   Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
     lag1Hour + lag3Hours + lag1day + rush_hour + as.factor(month) +
@@ -511,10 +663,16 @@ model5_q3 <- lm(
   data = train_q3
 )
 
-# Model performance summary
-model_rsq <- data.frame(
+cat("Model 5 Q3: + Rush Hour Interaction\n")
+cat("R-squared:", round(summary(model5_q3)$r.squared, 4), "\n")
+```
+
+```{r model_summary_q3}
+# Model performance summary (training set)
+model_rsq_q3 <- data.frame(
   Model = paste0("Model ", 1:5),
-  Description = c("Time + Weather", "+ Temporal Lags", "+ Demographics", "+ Station FE", "+ Rush Hour Interaction"),
+  Description = c("Time + Weather", "+ Temporal Lags", "+ Demographics", 
+                  "+ Station FE", "+ Rush Hour Interaction"),
   R_squared = c(
     summary(model1_q3)$r.squared,
     summary(model2_q3)$r.squared,
@@ -524,19 +682,19 @@ model_rsq <- data.frame(
   )
 )
 
-kable(model_rsq,
-      caption = "Q3 2024 Model Performance (Training Set)",
+kable(model_rsq_q3,
+      caption = "Q3 2024 Model Performance (Training Set R²)",
       col.names = c("Model", "Description", "R²"),
       digits = 4) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-**Finding**: Temporal lags (Model 2) provide substantial improvement in R² from 0.108 to 0.331 (+206% improvement). Additional features provide marginal gains. Station fixed effects add another 3 percentage points.
+**Finding**: Temporal lags (Model 2) provide substantial improvement in R² from 0.108 to 0.331 — a 206% increase in explained variance. Additional features provide marginal gains beyond this. Station fixed effects add another 3 percentage points.
 
-## 1.11 Calculate MAE for Q3 2024
+## 1.14 Calculate MAE for Q3 2024
 
 ```{r mae_q3}
-# Get predictions
+# Get predictions on test set
 test_q3 <- test_q3 %>%
   mutate(
     pred1 = predict(model1_q3, newdata = test_q3),
@@ -546,8 +704,10 @@ test_q3 <- test_q3 %>%
     pred5 = predict(model5_q3, newdata = test_q3)
   )
 
+# Calculate MAE for each model
 mae_q3 <- data.frame(
-  Model = c("1. Time + Weather", "2. + Temporal Lags", "3. + Demographics", "4. + Station FE", "5. + Rush Hour Interaction"),
+  Model = c("1. Time + Weather", "2. + Temporal Lags", "3. + Demographics", 
+            "4. + Station FE", "5. + Rush Hour Interaction"),
   MAE_Q3 = c(
     mean(abs(test_q3$Trip_Count - test_q3$pred1), na.rm = TRUE),
     mean(abs(test_q3$Trip_Count - test_q3$pred2), na.rm = TRUE),
@@ -558,27 +718,226 @@ mae_q3 <- data.frame(
 )
 ```
 
-## 1.12 Process Q1 2025 for Comparison
+## 1.15 Process Q1 2025 Data
 
-*(Same workflow: census, weather, panel, models)*
-
-```{r process_q1}
+```{r process_q1_full}
 #| message: false
-#| include: false
 
-# Process Q1 data identically to Q3 (code omitted for brevity but follows same structure)
-# Results in: train_q1, test_q1, mae_q1
+# Create time features for Q1
+indego_q1 <- indego_q1 %>%
+  mutate(
+    start_datetime = mdy_hm(start_time),
+    end_datetime = mdy_hm(end_time),
+    interval60 = floor_date(start_datetime, unit = "hour"),
+    week = week(interval60),
+    month = month(interval60, label = TRUE),
+    dotw = wday(interval60, label = TRUE),
+    hour = hour(interval60),
+    date = as.Date(interval60),
+    weekend = ifelse(dotw %in% c("Sat", "Sun"), 1, 0),
+    rush_hour = ifelse(hour %in% c(7, 8, 9, 16, 17, 18), 1, 0)
+  )
+
+# Join to census (using same philly_census)
+stations_sf_q1 <- indego_q1 %>%
+  distinct(start_station, start_lat, start_lon) %>%
+  filter(!is.na(start_lat), !is.na(start_lon)) %>%
+  st_as_sf(coords = c("start_lon", "start_lat"), crs = 4326)
+
+stations_census_q1 <- st_join(stations_sf_q1, philly_census, left = TRUE) %>%
+  st_drop_geometry()
+
+valid_stations_q1 <- stations_census_q1 %>%
+  filter(!is.na(Med_Inc)) %>%
+  pull(start_station)
+
+indego_census_q1 <- indego_q1 %>%
+  filter(start_station %in% valid_stations_q1) %>%
+  left_join(
+    stations_census_q1 %>% 
+      select(start_station, Med_Inc, Percent_Taking_Transit, 
+             Percent_White, Total_Pop),
+    by = "start_station"
+  )
+
+# Get Q1 weather
+weather_data_q1 <- riem_measures(
+  station = "PHL",
+  date_start = "2025-01-01",
+  date_end = "2025-03-31"
+)
+
+weather_complete_q1 <- weather_data_q1 %>%
+  mutate(
+    interval60 = floor_date(valid, unit = "hour"),
+    Temperature = tmpf,
+    Precipitation = ifelse(is.na(p01i), 0, p01i),
+    Wind_Speed = sknt
+  ) %>%
+  select(interval60, Temperature, Precipitation, Wind_Speed) %>%
+  distinct() %>%
+  complete(interval60 = seq(min(interval60), max(interval60), by = "hour")) %>%
+  fill(Temperature, Precipitation, Wind_Speed, .direction = "down")
+
+# Create panel
+trips_panel_q1 <- indego_census_q1 %>%
+  group_by(interval60, start_station, start_lat, start_lon,
+           Med_Inc, Percent_Taking_Transit, Percent_White, Total_Pop) %>%
+  summarize(Trip_Count = n(), .groups = "drop")
+
+station_attributes_q1 <- trips_panel_q1 %>%
+  group_by(start_station) %>%
+  summarize(
+    start_lat = first(start_lat),
+    start_lon = first(start_lon),
+    Med_Inc = first(Med_Inc),
+    Percent_Taking_Transit = first(Percent_Taking_Transit),
+    Percent_White = first(Percent_White),
+    Total_Pop = first(Total_Pop),
+    .groups = "drop"
+  )
+
+study_panel_q1 <- expand.grid(
+  interval60 = unique(trips_panel_q1$interval60),
+  start_station = unique(trips_panel_q1$start_station),
+  stringsAsFactors = FALSE
+) %>%
+  left_join(
+    trips_panel_q1 %>% select(interval60, start_station, Trip_Count), 
+    by = c("interval60", "start_station")
+  ) %>%
+  mutate(Trip_Count = replace_na(Trip_Count, 0)) %>%
+  left_join(station_attributes_q1, by = "start_station") %>%
+  mutate(
+    week = week(interval60),
+    month = month(interval60, label = TRUE),
+    dotw = wday(interval60, label = TRUE),
+    hour = hour(interval60),
+    date = as.Date(interval60),
+    weekend = ifelse(dotw %in% c("Sat", "Sun"), 1, 0),
+    rush_hour = ifelse(hour %in% c(7, 8, 9, 16, 17, 18), 1, 0)
+  ) %>%
+  left_join(weather_complete_q1, by = "interval60")
+
+# Add lags
+study_panel_q1 <- study_panel_q1 %>%
+  arrange(start_station, interval60) %>%
+  group_by(start_station) %>%
+  mutate(
+    lag1Hour = lag(Trip_Count, 1),
+    lag3Hours = lag(Trip_Count, 3),
+    lag1day = lag(Trip_Count, 24)
+  ) %>%
+  ungroup()
+
+study_panel_complete_q1 <- study_panel_q1 %>%
+  filter(!is.na(lag1day))
+
+# Train/test split: Q1 has weeks 1-13
+# Train on weeks 1-9, test on weeks 10-13
+early_stations_q1 <- study_panel_complete_q1 %>%
+  filter(week < 10, Trip_Count > 0) %>%
+  distinct(start_station) %>%
+  pull(start_station)
+
+late_stations_q1 <- study_panel_complete_q1 %>%
+  filter(week >= 10, Trip_Count > 0) %>%
+  distinct(start_station) %>%
+  pull(start_station)
+
+common_stations_q1 <- intersect(early_stations_q1, late_stations_q1)
+
+study_panel_complete_q1 <- study_panel_complete_q1 %>%
+  filter(start_station %in% common_stations_q1)
+
+train_q1 <- study_panel_complete_q1 %>%
+  filter(week < 10) %>%
+  mutate(dotw_simple = factor(dotw, 
+                               levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
+
+test_q1 <- study_panel_complete_q1 %>%
+  filter(week >= 10) %>%
+  mutate(dotw_simple = factor(dotw, 
+                               levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
+
+contrasts(train_q1$dotw_simple) <- contr.treatment(7)
+contrasts(test_q1$dotw_simple) <- contr.treatment(7)
+
+cat("Q1 Training observations:", format(nrow(train_q1), big.mark = ","), "\n")
+cat("Q1 Testing observations:", format(nrow(test_q1), big.mark = ","), "\n")
 ```
 
-## 1.13 Direct Q1 vs Q3 Comparison
+## 1.16 Build Q1 2025 Models
+
+```{r models_q1}
+# Build same 5 models for Q1
+model1_q1 <- lm(
+  Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation,
+  data = train_q1
+)
+
+model2_q1 <- lm(
+  Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
+    lag1Hour + lag3Hours + lag1day,
+  data = train_q1
+)
+
+model3_q1 <- lm(
+  Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
+    lag1Hour + lag3Hours + lag1day +
+    Med_Inc + Percent_Taking_Transit + Percent_White,
+  data = train_q1
+)
+
+model4_q1 <- lm(
+  Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
+    lag1Hour + lag3Hours + lag1day +
+    Med_Inc + Percent_Taking_Transit + Percent_White +
+    as.factor(start_station),
+  data = train_q1
+)
+
+model5_q1 <- lm(
+  Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
+    lag1Hour + lag3Hours + lag1day + rush_hour + as.factor(month) +
+    Med_Inc + Percent_Taking_Transit + Percent_White +
+    as.factor(start_station) +
+    rush_hour * weekend,
+  data = train_q1
+)
+
+# Get predictions
+test_q1 <- test_q1 %>%
+  mutate(
+    pred1 = predict(model1_q1, newdata = test_q1),
+    pred2 = predict(model2_q1, newdata = test_q1),
+    pred3 = predict(model3_q1, newdata = test_q1),
+    pred4 = predict(model4_q1, newdata = test_q1),
+    pred5 = predict(model5_q1, newdata = test_q1)
+  )
+
+# Calculate MAE
+mae_q1 <- data.frame(
+  Model = c("1. Time + Weather", "2. + Temporal Lags", "3. + Demographics", 
+            "4. + Station FE", "5. + Rush Hour Interaction"),
+  MAE_Q1 = c(
+    mean(abs(test_q1$Trip_Count - test_q1$pred1), na.rm = TRUE),
+    mean(abs(test_q1$Trip_Count - test_q1$pred2), na.rm = TRUE),
+    mean(abs(test_q1$Trip_Count - test_q1$pred3), na.rm = TRUE),
+    mean(abs(test_q1$Trip_Count - test_q1$pred4), na.rm = TRUE),
+    mean(abs(test_q1$Trip_Count - test_q1$pred5), na.rm = TRUE)
+  )
+)
+
+cat("✓ Q1 2025 models built and evaluated\n")
+```
+
+## 1.17 Direct Q1 vs Q3 Comparison
 
 ```{r comparison}
-# Combine MAE results (using actual values from your HTML output)
-mae_comparison <- data.frame(
-  Model = c("1. Time + Weather", "2. + Temporal Lags", "3. + Demographics", "4. + Station FE", "5. + Rush Hour Interaction"),
-  MAE_Q3 = c(0.824, 0.690, 0.691, 0.687, 0.685),  # Your actual Q3 results
-  MAE_Q1 = c(0.599, 0.501, 0.500, 0.495, 0.501)   # Your actual Q1 results
-) %>%
+# Combine MAE results
+mae_comparison <- mae_q3 %>%
+  left_join(mae_q1, by = "Model") %>%
   mutate(
     Q3_Better = MAE_Q3 < MAE_Q1,
     Pct_Difference = round((MAE_Q3 - MAE_Q1) / MAE_Q1 * 100, 1)
@@ -586,7 +945,8 @@ mae_comparison <- data.frame(
 
 kable(mae_comparison,
       caption = "Part 1 Results: Q3 2024 Summer vs Q1 2025 Winter Performance",
-      col.names = c("Model", "Q3 MAE\n(Summer)", "Q1 MAE\n(Winter)", "Summer Better?", "% Difference"),
+      col.names = c("Model", "Q3 MAE\n(Summer)", "Q1 MAE\n(Winter)", 
+                    "Summer Better?", "% Difference"),
       digits = 3) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
@@ -595,17 +955,22 @@ kable(mae_comparison,
 #| fig-width: 12
 #| fig-height: 6
 
-mae_long <- mae_comparison %>%
-  select(Model, MAE_Q3, MAE_Q1) %>%
-  pivot_longer(cols = c(MAE_Q3, MAE_Q1), names_to = "Quarter", values_to = "MAE") %>%
-  mutate(Quarter = recode(Quarter, "MAE_Q3" = "Q3 2024 (Summer)", "MAE_Q1" = "Q1 2025 (Winter)"))
+mae_long <- mae_q3 %>%
+  rename(MAE = MAE_Q3) %>%
+  mutate(Quarter = "Q3 2024 (Summer)") %>%
+  bind_rows(
+    mae_q1 %>%
+      rename(MAE = MAE_Q1) %>%
+      mutate(Quarter = "Q1 2025 (Winter)")
+  )
 
 ggplot(mae_long, aes(x = Model, y = MAE, fill = Quarter)) +
   geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("Q3 2024 (Summer)" = "#08519c", "Q1 2025 (Winter)" = "#6baed6")) +
+  scale_fill_manual(values = c("Q3 2024 (Summer)" = "#08519c", 
+                                "Q1 2025 (Winter)" = "#6baed6")) +
   labs(
     title = "Model Performance: Q3 2024 Summer vs Q1 2025 Winter",
-    subtitle = "SURPRISING RESULT: Summer is 37-39% HARDER to predict despite nearly double the ridership",
+    subtitle = "Surprising result: Summer is 37-39% HARDER to predict despite nearly DOUBLE the ridership",
     x = "Model",
     y = "Mean Absolute Error (trips)",
     fill = "Quarter"
@@ -616,27 +981,32 @@ ggplot(mae_long, aes(x = Model, y = MAE, fill = Quarter)) +
 
 ## Part 1 Key Findings
 
-**SURPRISING RESULT**: Summer Q3 2024 shows **significantly worse prediction accuracy** than winter Q1 2025 across all models:
+**Surprising result**: Summer Q3 2024 shows **significantly worse prediction accuracy** than winter Q1 2025 across all models:
 
--   **Q3 MAE**: 0.685-0.824 trips/hour (best to worst)
--   **Q1 MAE**: 0.495-0.599 trips/hour (best to worst)
--   **Difference**: Q3 is 37-39% worse across all models
+-   **Q3 MAE range**: 0.685-0.824 trips/hour (best to worst)
+-   **Q1 MAE range**: 0.495-0.599 trips/hour (best to worst)
+-   **Difference**: Q3 is 37-39% worse across all model specifications
 
-**Why is summer harder to predict despite 98% higher ridership?**
+**Why is summer harder to predict despite nearly double the ridership (98% increase)?**
 
-1.  **Diverse user types**: Summer includes tourists, casual riders, visitors with unpredictable patterns; winter dominated by committed commuters with consistent routines
+1.  **Diverse user types**: Summer includes tourists, casual riders, and visitors with unpredictable patterns; winter dominated by committed commuters with consistent routines
 
-2.  **Capacity constraints**: High-volume stations hit capacity limits more frequently, creating non-linear effects our models can't capture
+2.  **Capacity constraints**: High-volume stations hit capacity limits more frequently, creating non-linear effects our linear models cannot capture
 
-3.  **Complex substitution**: When stations are full/empty, riders use alternatives we don't observe in our station-level data
+3.  **Complex substitution**: When stations are full or empty, riders use alternatives we don't observe in station-level data
 
-4.  **Weather non-linearities**: Summer heat (\>85°F) may deter riding in ways our linear temperature term can't capture; winter's binary snow/no-snow is simpler
+4.  **Weather non-linearities**: Summer heat above 85°F may deter riding in ways our linear temperature term cannot capture; winter's binary snow/no-snow is simpler
 
 5.  **Special events**: Summer has diverse events (outdoor festivals, concerts, games) that are harder to anticipate than winter's limited activity
 
-**Model architecture patterns hold across seasons**: - Temporal lags provide largest improvement in both (16-22% MAE reduction) - Demographics add minimal value (\~0.1-0.5 percentage points) - Station fixed effects capture baseline differences - Rush hour interactions matter in both contexts
+**Model architecture patterns hold across seasons**:
 
-**Operational insight**: **High volume ≠ high predictability**. Winter's lower but more consistent demand is actually easier to forecast operationally.
+-   Temporal lags provide largest improvement in both quarters (approximately 16-18% MAE reduction)
+-   Demographics add minimal value (approximately 0.1-0.5 percentage points)
+-   Station fixed effects capture baseline differences\
+-   Rush hour interactions matter in both contexts
+
+**Operational insight**: **High volume does not equal high predictability**. Winter's lower but more consistent demand is actually easier to forecast for operational planning.
 
 ------------------------------------------------------------------------
 
@@ -691,16 +1061,20 @@ grid.arrange(p1, p2, ncol = 2)
 
 **Spatial Finding**:
 
-Errors strongly **correlate with demand**. The highest-error stations are: - **30th Street Station area**: Tourist hub, Amtrak travelers, unpredictable patterns - **University City corridor**: Penn/Drexel students with event-driven usage - **Center City core**: Business district with conference/convention spikes
+Errors strongly correlate with demand. The highest-error stations are concentrated in:
+
+-   **30th Street Station area**: Tourist hub, Amtrak travelers, unpredictable patterns
+-   **University City corridor**: Penn and Drexel students with event-driven usage
+-   **Center City core**: Business district with conference and convention spikes
 
 **Hypothesis for high errors in high-demand areas**:
 
-1.  **Capacity constraints**: When stations fill up, unmet demand isn't observed
+1.  **Capacity constraints**: When stations fill up, unmet demand is not observed in data
 2.  **Network effects**: Riders substitute to nearby stations when first choice is unavailable
 3.  **Event-driven spikes**: Concerts, games, conventions create unpredictable surges
-4.  **Diverse user mix**: Tourists, students, commuters, visitors behave differently
+4.  **Diverse user mix**: Tourists, students, commuters, visitors all behave differently
 
-**Missing features needed**: Event calendars, real-time capacity data, station-to-station flows.
+**Missing features needed**: Event calendars, real-time capacity data, station-to-station flow matrices.
 
 ## 2.2 Temporal Error Patterns
 
@@ -736,7 +1110,8 @@ test_q3 <- test_q3 %>%
       hour >= 15 & hour <= 18 ~ "PM_Rush",
       hour > 18 ~ "Evening"
     ),
-    time_of_day = factor(time_of_day, levels = c("Overnight", "AM_Rush", "Midday", "PM_Rush", "Evening")),
+    time_of_day = factor(time_of_day, 
+                         levels = c("Overnight", "AM_Rush", "Midday", "PM_Rush", "Evening")),
     day_type = ifelse(weekend == 1, "Weekend", "Weekday")
   )
 
@@ -758,19 +1133,24 @@ grid.arrange(p1, p2, ncol = 1)
 
 **Temporal Findings**:
 
-1.  **PM Rush (4-6pm weekdays)**: Highest MAE and systematic **underprediction** (negative mean error). Why? Complex substitution patterns when preferred stations are full/empty. Evening demand more discretionary and event-driven than morning commutes.
+1.  **PM Rush (4-6pm weekdays)**: Highest MAE and systematic **underprediction** (negative mean error). Complex substitution patterns when preferred stations are full or empty. Evening demand more discretionary and event-driven than morning commutes.
 
-2.  **Weekend Midday (10am-3pm)**: Also high errors. Recreational trips harder to predict than routine commutes. Weather sensitivity likely non-linear.
+2.  **Weekend Midday (10am-3pm)**: Also shows high errors. Recreational trips harder to predict than routine commutes. Weather sensitivity likely non-linear.
 
-3.  **Overnight (midnight-6am)**: Lowest errors but still matters. Small absolute demand means even 1-trip errors are large percentage-wise.
+3.  **Overnight (midnight-6am)**: Lowest errors but still operationally matters. Small absolute demand means even 1-trip errors represent large percentage deviations.
 
-**Operational implications**: - **Most critical**: PM Rush weekday errors directly impact evening rebalancing when demand is highest - **Least critical**: Overnight errors affect small absolute volumes - **Strategic opportunity**: Morning predictions are relatively good; could inform proactive evening pre-positioning
+**Operational implications**:
+
+-   **Most critical**: PM Rush weekday errors directly impact evening rebalancing when demand is highest
+-   **Least critical**: Overnight errors affect small absolute volumes
+-   **Strategic opportunity**: Morning predictions are relatively good; could inform proactive evening pre-positioning
 
 ## 2.3 Demographic Patterns & Equity Analysis
 
 ```{r equity_analysis}
 station_errors_demo_q3 <- station_errors_q3 %>%
-  left_join(station_attributes_q3 %>% select(start_station, Med_Inc, Percent_Taking_Transit, Percent_White),
+  left_join(station_attributes_q3 %>% 
+              select(start_station, Med_Inc, Percent_Taking_Transit, Percent_White),
             by = "start_station") %>%
   filter(!is.na(Med_Inc)) %>%
   mutate(
@@ -815,7 +1195,7 @@ p_pct <- ggplot(equity_summary_q3, aes(x = income_quartile, y = avg_pct_error)) 
   geom_col(fill = "#6baed6", alpha = 0.8) +
   geom_text(aes(label = paste0(round(avg_pct_error, 1), "%")), vjust = -0.5, size = 4) +
   labs(title = "Percentage Errors by Income Quartile",
-       subtitle = "Relatively similar across groups when normalized by demand",
+       subtitle = "Actually higher in lowest-income areas when normalized by demand",
        x = "Neighborhood Income Level", y = "Avg % Error") +
   plotTheme
 
@@ -824,33 +1204,54 @@ grid.arrange(p_abs, p_pct, ncol = 2)
 
 ## Part 2 Equity Findings
 
-**Good news**: When measured as **percentage errors** (the appropriate metric for comparing across different demand levels), model performance is relatively **equitable across income levels**:
+The equity analysis reveals a more complex pattern than initially expected:
 
--   Q1 (Lowest income): \~XX% error
--   Q2: \~XX% error\
--   Q3: \~XX% error
--   Q4 (Highest income): \~XX% error
+**Absolute MAE** is highest in Q4 (wealthiest neighborhoods), reflecting higher demand volumes. However, **percentage errors** show a concerning gradient in the opposite direction:
 
-The higher **absolute** MAE in Q4 (wealthiest neighborhoods) primarily reflects **higher demand volumes**, not systematically worse model performance.
+-   **Q1 (Lowest income)**: approximately 215% average error
+-   **Q2**: approximately 172% average error\
+-   **Q3**: approximately 103% average error
+-   **Q4 (Highest income)**: approximately 93% average error
 
-**Equity concerns still exist**:
+**This means**: While high-income, high-demand stations have larger absolute errors, **lower-income neighborhoods experience more volatile and harder-to-predict demand relative to their baseline usage**.
 
-1.  **Spatial coverage bias**: Stations concentrated in wealthier Center City/University City; underserved neighborhoods have fewer stations to begin with
+**Why might this occur?**
 
-2.  **Data feedback loops**: If poor service → less ridership → less data → worse predictions → poor service continues, this perpetuates disparities
+1.  **Small denominator problem**: Low-income stations have very low average demand (often \<1 trip/hour), so even small absolute errors (0.5-1 trips) create large percentage errors
 
-3.  **Supply-driven demand**: Model predicts observed demand, not latent demand. Underserved areas may have unmet demand our model never sees.
+2.  **Sparse, irregular demand**: Lower-income stations may have more sporadic usage patterns that are inherently harder to model
 
-4.  **Operational prioritization risk**: If system optimizes for high-volume (often wealthier) stations, lower-income areas get de-prioritized
+3.  **Data scarcity**: Fewer trips equals less training data for those stations, leading to less accurate predictions
+
+4.  **Missing demand drivers**: Lower-income areas may have different, less-regular demand patterns that commute-focused features don't capture well
+
+**Critical equity concern**: Even though the model is not explicitly biased against lower-income areas, **higher percentage errors suggest service quality predictions may be less reliable in neighborhoods that already face transportation disadvantages**.
+
+**Equity concerns beyond model performance**:
+
+1.  **Spatial coverage bias**: Stations concentrated in wealthier Center City and University City areas. Model cannot predict demand where stations don't exist.
+
+2.  **Data feedback loops**: Poor service → residents stop trying → less ridership → less data → worse predictions → poor service continues
+
+3.  **Supply-driven demand**: Model predicts **observed** demand, not **latent** demand. If a neighborhood lacks convenient stations, residents don't ride, and we never see their potential demand.
+
+4.  **Operational prioritization**: If system optimizes for high predicted demand (often wealthier areas), lower-income neighborhoods with lower but still-important demand may get deprioritized in truck routing.
 
 **Recommended safeguards**:
 
-1.  **Equity audit dashboard**: Track MAE by demographic quartiles monthly; flag degradation
-2.  **Minimum service standards**: Guarantee baseline rebalancing frequency regardless of predicted demand\
-3.  **Proactive over-supply**: Intentionally maintain extra bikes in historically underserved areas
-4.  **Latent demand surveys**: Conduct community outreach to understand barriers beyond just prediction
-5.  **Transparent reporting**: Publish performance metrics by neighborhood publicly
-6.  **Community input**: Regular feedback loops with residents of all neighborhoods
+1.  **Equity audit dashboard**: Track performance metrics (MAE, percentage error, service levels) by demographic quartiles monthly; flag degradation
+
+2.  **Minimum service standards**: Guarantee every station gets rebalancing every X hours regardless of predicted demand
+
+3.  **Proactive over-supply**: Intentionally maintain extra bikes in historically underserved areas even if predictions suggest lower demand
+
+4.  **Latent demand surveys**: Annual community surveys in underserved areas to understand unmet needs
+
+5.  **Transparent public reporting**: Publish quarterly equity reports so communities can hold the system accountable
+
+6.  **Community input loops**: Regular meetings with neighborhood associations from all income levels
+
+7.  **Expansion equity criteria**: When adding new stations, prioritize filling gaps in underserved areas over optimizing high-demand areas
 
 ------------------------------------------------------------------------
 
@@ -869,28 +1270,16 @@ study_panel_complete_q3 <- study_panel_complete_q3 %>%
     labor_day = ifelse(date >= as.Date("2024-08-31") & date <= as.Date("2024-09-02"), 1, 0),
     holiday = ifelse(july4 == 1 | labor_day == 1, 1, 0)
   )
-
-# Re-create train/test
-train_q3_new <- study_panel_complete_q3 %>%
-  filter(week < 36, start_station %in% common_stations_q3) %>%
-  mutate(dotw_simple = factor(dotw, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
-
-test_q3_new <- study_panel_complete_q3 %>%
-  filter(week >= 36, start_station %in% common_stations_q3) %>%
-  mutate(dotw_simple = factor(dotw, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
-
-contrasts(train_q3_new$dotw_simple) <- contr.treatment(7)
-contrasts(test_q3_new$dotw_simple) <- contr.treatment(7)
 ```
 
-**Rationale**: EDA showed July 4th and Labor Day had 10-15% **lower** ridership than typical weekdays. Unlike Q1's Eagles parade (massive spike), summer holidays **eliminate** commute trips while only modestly increasing recreational trips. Binary indicators capture this distinctive pattern.
+**Rationale**: Exploratory analysis showed July 4th and Labor Day had 10-15% **lower** ridership than typical weekdays. Unlike Q1's Eagles parade (massive spike), summer holidays **eliminate** commute trips while only modestly increasing recreational trips. Binary indicators capture this distinctive pattern.
 
 ## 3.2 Feature Set 2: Weather Non-Linearities
 
 ```{r feature_weather}
-train_q3_new <- train_q3_new %>%
+study_panel_complete_q3 <- study_panel_complete_q3 %>%
   mutate(
-    # Perfect biking conditions
+    # Perfect biking conditions (60-75°F, no rain)
     perfect_weather = ifelse(Temperature >= 60 & Temperature <= 75 & Precipitation == 0, 1, 0),
     
     # Extreme heat deterrent
@@ -899,25 +1288,18 @@ train_q3_new <- train_q3_new %>%
     # Weekend recreation interaction
     weekend_nice = weekend * perfect_weather
   )
-
-test_q3_new <- test_q3_new %>%
-  mutate(
-    perfect_weather = ifelse(Temperature >= 60 & Temperature <= 75 & Precipitation == 0, 1, 0),
-    too_hot = ifelse(Temperature > 85, 1, 0),
-    weekend_nice = weekend * perfect_weather
-  )
 ```
 
 **Rationale**:
 
--   **Perfect weather (60-75°F, no rain)**: Summer "Goldilocks zone" likely boosts discretionary/recreational trips beyond linear temperature effect
--   **Too hot (\>85°F)**: Extreme heat may deter riding in non-linear ways; simple linear temperature term can't capture threshold effects
+-   **Perfect weather (60-75°F, no rain)**: Summer "Goldilocks zone" likely boosts discretionary and recreational trips beyond linear temperature effect
+-   **Too hot (\>85°F)**: Extreme heat may deter riding in non-linear ways that a simple linear temperature term cannot capture
 -   **Weekend × nice weather**: Recreational trips especially sensitive to perfect conditions; commuters ride regardless
 
 ## 3.3 Feature Set 3: Rolling Demand Trends
 
 ```{r feature_rolling}
-# Add to panel (requires zoo package)
+# Add rolling averages to capture trends
 study_panel_complete_q3 <- study_panel_complete_q3 %>%
   arrange(start_station, interval60) %>%
   group_by(start_station) %>%
@@ -929,42 +1311,32 @@ study_panel_complete_q3 <- study_panel_complete_q3 %>%
     lag1week_samehour = lag(Trip_Count, 168)
   ) %>%
   ungroup()
+```
 
-# Update train/test
+**Rationale**:
+
+-   **7-day rolling average**: Captures medium-term trends (e.g., growing popularity of specific stations, seasonal ramp-up) that simple hour and day patterns miss
+-   **Same hour last week**: Weekly cyclicality beyond day-of-week (e.g., weekly farmers markets, recurring events)
+
+## 3.4 Re-create Train/Test with New Features
+
+```{r recreate_splits}
+# Filter to common stations and create new train/test
 train_q3_new <- study_panel_complete_q3 %>%
   filter(week < 36, start_station %in% common_stations_q3) %>%
-  mutate(
-    dotw_simple = factor(dotw, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")),
-    july4 = ifelse(date == as.Date("2024-07-04"), 1, 0),
-    labor_day = ifelse(date >= as.Date("2024-08-31") & date <= as.Date("2024-09-02"), 1, 0),
-    holiday = ifelse(july4 == 1 | labor_day == 1, 1, 0),
-    perfect_weather = ifelse(Temperature >= 60 & Temperature <= 75 & Precipitation == 0, 1, 0),
-    too_hot = ifelse(Temperature > 85, 1, 0),
-    weekend_nice = weekend * perfect_weather
-  )
+  mutate(dotw_simple = factor(dotw, 
+                               levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
 
 test_q3_new <- study_panel_complete_q3 %>%
   filter(week >= 36, start_station %in% common_stations_q3) %>%
-  mutate(
-    dotw_simple = factor(dotw, levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")),
-    july4 = ifelse(date == as.Date("2024-07-04"), 1, 0),
-    labor_day = ifelse(date >= as.Date("2024-08-31") & date <= as.Date("2024-09-02"), 1, 0),
-    holiday = ifelse(july4 == 1 | labor_day == 1, 1, 0),
-    perfect_weather = ifelse(Temperature >= 60 & Temperature <= 75 & Precipitation == 0, 1, 0),
-    too_hot = ifelse(Temperature > 85, 1, 0),
-    weekend_nice = weekend * perfect_weather
-  )
+  mutate(dotw_simple = factor(dotw, 
+                               levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
 
 contrasts(train_q3_new$dotw_simple) <- contr.treatment(7)
 contrasts(test_q3_new$dotw_simple) <- contr.treatment(7)
 ```
 
-**Rationale**:
-
--   **7-day rolling average**: Captures medium-term trends (e.g., growing popularity of specific stations, seasonal ramp-up) that simple hour/day patterns miss
--   **Same hour last week**: Weekly cyclicality beyond day-of-week (e.g., weekly farmers markets, recurring events)
-
-## 3.4 Model 6: Add All New Features
+## 3.5 Model 6: Add All New Features
 
 ```{r model6}
 model6_q3 <- lm(
@@ -982,10 +1354,11 @@ cat("Model 6: + New Features\n")
 cat("R-squared:", round(summary(model6_q3)$r.squared, 4), "\n")
 ```
 
-## 3.5 Model 7: Poisson Regression for Count Data
+## 3.6 Model 7: Poisson Regression for Count Data
 
 ```{r model7_poisson}
 # Poisson is theoretically appropriate for count data
+# Constrains predictions to non-negative values
 model7_q3 <- glm(
   Trip_Count ~ as.factor(hour) + dotw_simple + Temperature + Precipitation +
     lag1Hour + lag3Hours + lag1day + lag7day_avg +
@@ -1001,10 +1374,10 @@ cat("AIC:", round(AIC(model7_q3), 0), "\n")
 
 **Rationale for Poisson**: Trip counts are non-negative integers (count data). OLS can predict negative values; Poisson constrains predictions to \[0, ∞). Additionally, Poisson naturally handles overdispersion (variance \> mean) common in count data.
 
-## 3.6 Evaluate All Models
+## 3.7 Evaluate All Models
 
 ```{r evaluate_all}
-# Get predictions for all models
+# Get predictions for all 7 models
 test_q3_new <- test_q3_new %>%
   mutate(
     pred1 = predict(model1_q3, newdata = test_q3_new),
@@ -1024,8 +1397,8 @@ mae_all_q3 <- data.frame(
     "+ Demographics",
     "+ Station FE",
     "+ Rush Hour Interaction",
-    "+ New Features (Holidays, Weather NL, Rolling)",
-    "Poisson (Count Data)"
+    "+ New Features",
+    "Poisson"
   ),
   MAE = c(
     mean(abs(test_q3_new$Trip_Count - test_q3_new$pred1), na.rm = TRUE),
@@ -1044,7 +1417,7 @@ mae_all_q3 <- data.frame(
 
 kable(mae_all_q3,
       caption = "Part 3: All Models Performance - Q3 2024",
-      col.names = c("Model", "Description", "MAE (trips)", "% Better than M1", "% Better than M2"),
+      col.names = c("Model", "Description", "MAE (trips)", "% Better\nthan M1", "% Better\nthan M2"),
       digits = 3) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
@@ -1070,29 +1443,32 @@ ggplot(mae_all_q3, aes(x = reorder(Model, -MAE), y = MAE)) +
 
 ## Part 3 Results & Interpretation
 
-**Feature engineering impact** (using actual values from your output):
+**Feature engineering impact**:
 
--   **Model 2 (temporal lags)**: \~0.690 MAE - captures **16% improvement** over baseline
--   **Model 6 (+ all new features)**: \~0.657 MAE - captures **5% additional improvement**
--   **Model 7 (Poisson)**: \~0.657 MAE - similar to M6, theoretically better for count data
+Model 2 (temporal lags only) captures approximately 16% improvement over baseline Model 1. New features in Model 6 add only approximately 1-2% additional improvement beyond Model 2. Poisson Model 7 performs similarly to Model 6, achieving approximately 0.657 MAE.
 
-**Key insight**: **Temporal lags provide 95% of achievable improvement**. Sophisticated feature engineering (holidays, weather non-linearities, rolling averages) adds only marginal gains (\~0.03 MAE reduction).
+**Key insight**: **Temporal lags provide 95% of achievable improvement**. Sophisticated feature engineering (holidays, weather non-linearities, rolling averages) adds only marginal gains.
 
 **Why new features help minimally**:
 
 1.  **Holiday effects already captured**: Day-of-week and month fixed effects partially absorb holiday patterns
-2.  **Weather non-linearities subtle**: Most summer days in comfortable range; extreme heat rare
-3.  **Rolling averages correlate with lags**: 7-day average mostly redundant with lag1day and station FE
-4.  **Overfitting risk**: Complex features may fit training noise, not true signal
+2.  **Weather non-linearities subtle**: Most summer days fall in comfortable range; extreme heat is rare
+3.  **Rolling averages correlate with lags**: 7-day average mostly redundant with lag1day and station fixed effects
+4.  **Overfitting risk**: Complex features may fit training noise rather than true signal
 
 **Poisson model benefits**:
 
 -   Constrains predictions to non-negative values (eliminates nonsensical negative forecasts)
 -   Better theoretical foundation for count data
--   Handles overdispersion (Q3 has variance \>\> mean due to zeros and high-demand spikes)
+-   Handles overdispersion (Q3 has variance much greater than mean due to zeros and high-demand spikes)
 -   Similar MAE to OLS but more interpretable probabilistically
 
-**Practical recommendation**: **Use Model 2 (temporal lags only) for production**. Simplicity aids: - Faster computation for real-time deployment - Easier to explain to operators ("last hour + yesterday") - Less prone to overfitting as demand patterns shift - Robust across seasons (works in Q1 and Q3)
+**Practical recommendation**: **Use Model 2 (temporal lags only) for production**. Simplicity aids:
+
+-   Faster computation for real-time deployment
+-   Easier to explain to operators ("last hour plus yesterday")
+-   Less prone to overfitting as demand patterns shift
+-   Robust across seasons (works in both Q1 and Q3)
 
 ------------------------------------------------------------------------
 
@@ -1118,21 +1494,21 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 **Short answer: Conditionally yes**, but with important caveats.
 
-**Context on the 0.657 MAE (using your actual value)**:
+**Context on the best MAE for Q3 2024**:
 
--   **Surface-level**: MAE of 0.657 trips/hour against mean demand of 0.77 trips/hour = **85% error rate**. This sounds terrible!
+-   **Surface-level**: MAE of approximately 0.657 trips/hour against mean demand of 0.77 trips/hour equals roughly 85% error rate. This sounds terrible.
 
--   **Zero-inflation reality**: Median demand is **0 trips/hour** (61.7% of observations are zeros). For these zero-demand periods, 0.657 MAE is meaningless — we're measuring error on periods where nothing happens anyway.
+-   **Zero-inflation reality**: Median demand is **0 trips/hour** (approximately 62% of observations are zeros). For these zero-demand periods, MAE metrics are misleading — measuring error on periods where essentially nothing happens anyway.
 
--   **Where it matters**: For **high-demand periods** (≥3 trips/hour, \~15% of observations), MAE is approximately **30-40% of average demand** — much more reasonable for operational planning.
+-   **Where it matters**: For **high-demand periods** (≥3 trips/hour, approximately 15% of observations), MAE is approximately **30-40% of average demand** — much more reasonable for operational planning.
 
 **When prediction errors cause rebalancing problems**:
 
-**CRITICAL periods** (errors directly cause stockouts/overflows):
+**CRITICAL periods** (errors directly cause stockouts or overflows):
 
 1.  **AM Rush (7-9am weekdays)**: Underestimating leaves commuters stranded; missed trips cascade to lower ridership rest of day
-2.  **PM Rush (4-6pm weekdays)**: Our analysis showed **systematic underprediction** here; worst-case scenario for evening rebalancing
-3.  **High-volume tourist stations**: 30th St Station, Rittenhouse Square where 1-2 trip errors × high frequency = stockouts within hour
+2.  **PM Rush (4-6pm weekdays)**: Analysis showed **systematic underprediction** here; worst-case scenario for evening rebalancing
+3.  **High-volume tourist stations**: 30th St Station, Rittenhouse Square where 1-2 trip errors times high frequency equals stockouts within an hour
 
 **MODERATE impact**:
 
@@ -1146,14 +1522,14 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 ### Deployment Recommendation
 
-**YES, deploy conditionally** with following framework:
+**YES, deploy conditionally** with the following framework:
 
 **Deploy for**:
 
--   **Regional rebalancing strategy**: Weekly/monthly capacity planning across system
+-   **Regional rebalancing strategy**: Weekly and monthly capacity planning across system
 -   **Medium-confidence routing**: Truck routing for non-critical periods
--   **Demand forecasting**: Understanding seasonal patterns, growth trends
--   **Scenario planning**: Testing "what-if" for new stations, service changes
+-   **Demand forecasting**: Understanding seasonal patterns and growth trends
+-   **Scenario planning**: Testing "what-if" for new stations and service changes
 
 **DO NOT deploy alone for**:
 
@@ -1164,45 +1540,49 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 **Required safeguards**:
 
 1.  **Quarterly retraining**: Retrain models every quarter with recent data (demand patterns shift)
-2.  **Real-time data integration**: Combine predictions with live dock sensors (full/empty stations)
-3.  **Weather forecast integration**: Use forecast temperature/precipitation, not historical actuals
+2.  **Real-time data integration**: Combine predictions with live dock sensors (full or empty stations)
+3.  **Weather forecast integration**: Use forecast temperature and precipitation, not historical actuals
 4.  **Human oversight**: Operations managers review and can override for known events
-5.  **Accuracy monitoring**: Track MAE by station/hour; flag degradation immediately
+5.  **Accuracy monitoring**: Track MAE by station and hour; flag degradation immediately
 6.  **Fallback rules**: If prediction confidence low, revert to historical averages
 
 **Phased rollout strategy**:
 
-1.  **Phase 1 (Months 1-3)**: Parallel operation — predictions guide but don't control; measure accuracy
-2.  **Phase 2 (Months 4-6)**: Low-stakes automation — overnight/low-volume rebalancing automated
+1.  **Phase 1 (Months 1-3)**: Parallel operation — predictions guide but do not control; measure accuracy
+2.  **Phase 2 (Months 4-6)**: Low-stakes automation — overnight and low-volume rebalancing automated
 3.  **Phase 3 (Months 7-12)**: Expand to non-rush periods if Phase 2 successful
-4.  **Phase 4 (Year 2+)**: Consider rush hour if accuracy improves with more data/features
+4.  **Phase 4 (Year 2+)**: Consider rush hour if accuracy improves with more data and features
 
 ## 4.2 Equity Considerations
 
 ### Do Errors Disproportionately Affect Certain Neighborhoods?
 
-**Direct analysis: No**. When measured as **percentage errors** (appropriate for different demand levels), model performs equitably across income quartiles. Higher absolute errors in wealthier neighborhoods reflect higher demand, not bias.
+**Direct model performance**: Analysis revealed a concerning **gradient in percentage errors**:
 
-**Indirect concerns: Yes**. The system could worsen disparities through:
+-   **Lowest-income quartile (Q1)**: approximately 215% average error
+-   **Q2**: approximately 172% average error
+-   **Q3**: approximately 103% average error
+-   **Highest-income quartile (Q4)**: approximately 93% average error
 
-1.  **Spatial coverage bias**: Stations concentrated in wealthy Center City/University City. Model can't predict demand where stations don't exist. Underserved neighborhoods invisible to analysis.
+This means lower-income neighborhoods experience **more volatile and harder-to-predict demand relative to their baseline usage**, even though absolute errors are higher in wealthier, high-demand areas.
 
-2.  **Data feedback loops**:
+**Why this matters**: While the model is not explicitly biased against lower-income areas, **less reliable predictions mean service quality is harder to optimize in neighborhoods that already face transportation disadvantages**.
 
-    -   Poor service → residents stop trying → less ridership → less training data → worse predictions → poor service continues
-    -   Creates self-fulfilling prophecy of underservice
+**Indirect concerns**: The system could worsen disparities through:
+
+1.  **Spatial coverage bias**: Stations concentrated in wealthy Center City and University City. Model cannot predict demand where stations don't exist. Underserved neighborhoods invisible to analysis.
+
+2.  **Data feedback loops**: Poor service → residents stop trying → less ridership → less training data → worse predictions → poor service continues
 
 3.  **Supply-driven demand**: Model predicts **observed** demand, not **latent** demand. If a neighborhood lacks convenient stations, residents don't ride, we don't see their potential demand.
 
-4.  **Operational prioritization**: If system optimizes for high predicted demand (often wealthier areas), low-income neighborhoods with lower but still-important demand get deprioritized in truck routing.
-
-5.  **Capacity constraints**: Model struggles most at high-volume stations (which are in wealthier areas). If rebalancing focuses on fixing those errors, underserved areas get less attention.
+4.  **Operational prioritization**: If system optimizes for high predicted demand (often wealthier areas), lower-income neighborhoods with lower but still-important demand may get deprioritized in truck routing.
 
 ### Recommended Equity Safeguards
 
 **Monitoring & Accountability**:
 
-1.  **Equity audit dashboard**: Track performance metrics (MAE, service levels, dock availability) by demographic quartiles monthly
+1.  **Equity audit dashboard**: Track performance metrics (MAE, percentage error, service levels, dock availability) by demographic quartiles monthly
 2.  **Threshold alerts**: Flag if service in lower-income areas degrades relative to citywide
 3.  **Transparent public reporting**: Publish quarterly equity reports; community can hold system accountable
 
@@ -1210,7 +1590,7 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 4.  **Minimum service standards**: Guarantee every station gets rebalancing every X hours regardless of predicted demand
 5.  **Proactive over-supply**: Intentionally maintain extra bikes in historically underserved areas (even if predictions suggest lower demand)
-6.  **Latent demand surveys**: Annual community surveys in underserved areas: "Would you bike if station was 2 blocks closer? If bikes were always available?"
+6.  **Latent demand surveys**: Annual community surveys in underserved areas to understand unmet needs
 
 **System Design**:
 
@@ -1220,7 +1600,7 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 **Model Improvements**:
 
-10. **Latent demand estimation**: Build separate model using survey data + walkability + demographics to estimate *potential* demand, not just observed
+10. **Latent demand estimation**: Build separate model using survey data plus walkability plus demographics to estimate *potential* demand, not just observed
 11. **Equity-weighted objectives**: Explicitly trade off MAE minimization against equity metrics in model training
 
 ## 4.3 Model Limitations
@@ -1231,18 +1611,18 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 -   Wells Fargo Center events, Mann Center concerts, festivals on Ben Franklin Parkway create huge demand spikes
 -   Current model has no event calendar; treats these as unexplained errors
--   **Fix**: Integrate Eventbrite/Ticketmaster APIs for scheduled events; add binary indicators
+-   **Fix**: Integrate Eventbrite or Ticketmaster APIs for scheduled events; add binary indicators
 
 **Weather forecasts vs. actuals**:
 
--   Model uses historical temperature/precipitation; operations needs **forecasts**
+-   Model uses historical temperature and precipitation; operations needs **forecasts**
 -   Forecast uncertainty adds noise; riders respond to forecast not actuals
 -   **Fix**: Train on forecast data from NOAA; model forecast error explicitly
 
 **Supply constraints & network effects**:
 
 -   When station A is full, riders go to station B — model doesn't capture substitution
--   Capacity limits create non-linear effects; linear regression can't handle
+-   Capacity limits create non-linear effects; linear regression cannot handle
 -   **Fix**: Station-to-station flow matrix; model pairs not individuals
 
 **Academic calendar** (Penn, Drexel, Temple):
@@ -1253,7 +1633,7 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 **Infrastructure changes**:
 
--   New bike lanes, station additions/removals, road construction
+-   New bike lanes, station additions or removals, road construction
 -   Model assumes static environment; doesn't adapt to changes
 -   **Fix**: Time-varying spatial features; explicit change indicators
 
@@ -1278,8 +1658,8 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 **No capacity constraints**:
 
--   Model predicts unconstrained demand; ignores dock/bike limits
--   Can't predict unmet demand when stations empty/full
+-   Model predicts unconstrained demand; ignores dock and bike limits
+-   Cannot predict unmet demand when stations empty or full
 -   **Mitigation**: Occupancy sensors; explicitly model censored observations
 
 **Weather spatial homogeneity**:
@@ -1306,7 +1686,7 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 2.  **Weather forecasts**: Use operational forecasts not historical actuals
 3.  **Zero-inflated models**: Separate "will there be demand?" from "how much?"
 4.  **Station-to-station flows**: Capture substitution and network effects
-5.  **Academic calendar**: Penn/Drexel/Temple in-session indicators
+5.  **Academic calendar**: Penn, Drexel, Temple in-session indicators
 
 **Medium priority**:
 
@@ -1329,29 +1709,34 @@ This analysis tested the hypothesis that **higher ridership volume improves pred
 
 ## Key Findings
 
-**1. Volume ≠ Predictability**:
+**1. Volume Does Not Equal Predictability**:
 
-Despite Q3 2024 summer having **98% higher daily ridership** than Q1 2025 winter, prediction accuracy was **37-39% worse** across all model specifications. Summer's MAE of 0.685-0.824 trips/hour substantially exceeded winter's 0.495-0.599 trips/hour.
+Despite Q3 2024 summer having **nearly double the daily ridership** (98% increase) compared to Q1 2025 winter, prediction accuracy was **37-39% worse** across all model specifications. Summer's MAE of 0.685-0.824 trips per hour substantially exceeded winter's 0.495-0.599 trips per hour.
 
 **2. Why Summer is Harder to Predict**:
 
 -   **Diverse user types**: Tourists, casual riders, visitors with unpredictable patterns mix with consistent commuters
 -   **Capacity constraints**: High-volume stations hit limits frequently, creating non-linear effects
--   **Complex substitution**: Full/empty stations drive riders to alternatives we don't observe\
+-   **Complex substitution**: Full or empty stations drive riders to alternatives we don't observe\
 -   **Event-driven demand**: Summer festivals, concerts, outdoor activities create spikes hard to anticipate
 -   **Weather non-linearities**: Extreme heat effects different from linear temperature relationship
 
 **3. Simplicity Wins**:
 
-Temporal lag features (Model 2) captured **95% of achievable improvement** (+16% over baseline). Sophisticated feature engineering (holidays, weather non-linearities, rolling averages) added only **5% additional gains** (+0.03 MAE). **Implication: Production systems should prioritize simple, robust lag features over complex feature engineering**.
+Temporal lag features (Model 2) captured **approximately 95% of achievable improvement** (16% over baseline). Sophisticated feature engineering (holidays, weather non-linearities, rolling averages) added only **approximately 5% additional gains** (1-2 percentage points MAE reduction). **Implication: Production systems should prioritize simple, robust lag features over complex feature engineering**.
 
 **4. Model Architecture Generalizes**:
 
-Despite seasonal differences, core model structure works in both contexts: - Temporal lags dominate improvement (both seasons) - Demographics add minimal value (\~0.5 percentage points) - Station fixed effects capture baseline differences - Rush hour interactions matter in both
+Despite seasonal differences, core model structure works in both contexts:
 
-**5. Equity Analysis**:
+-   Temporal lags dominate improvement (both seasons)
+-   Demographics add minimal value (approximately 0.1-0.5 percentage points)
+-   Station fixed effects capture baseline differences
+-   Rush hour interactions matter in both
 
-No systematic bias when measured as percentage errors — all income quartiles show 60-80% error rates. Higher absolute errors in wealthier areas reflect higher demand, not worse performance. **However**, indirect equity concerns remain: spatial coverage bias, data feedback loops, supply-driven demand measurement, operational prioritization risks.
+**5. Equity Concerns**:
+
+Percentage errors show a concerning gradient: lowest-income areas have approximately 215% error vs. 93% in highest-income areas. While this partly reflects small denominators (sparse demand), it suggests **service quality predictions are less reliable in neighborhoods that already face transportation disadvantages**.
 
 **6. Deployment Recommendation**:
 
@@ -1363,7 +1748,7 @@ No systematic bias when measured as percentage errors — all income quartiles s
 
 **2. Diminishing Returns of Feature Engineering**: Beyond basic temporal lags, sophisticated features add minimal value. The 95/5 rule (lags capture 95% of improvement, everything else 5%) suggests that **operational effort should focus on data quality and retraining frequency** rather than elaborate feature creation.
 
-**3. Zero-Inflation Measurement**: Aggregate MAE of 0.657 trips/hour against mean demand of 0.77 (85% error rate) is misleading when 61.7% of observations are zeros. **Appropriate metrics**: MAE conditional on demand \> 0, time-period stratified errors (e.g., PM Rush only), or percentage errors. **Implication**: Standard ML metrics can be inappropriate for operational bike share context.
+**3. Equity Measurement Complexity**: Absolute MAE can mask equity concerns. Percentage errors reveal that lower-income areas have more volatile demand relative to baseline, suggesting **service optimization may be harder precisely where it matters most for transportation equity**.
 
 ## Limitations & Future Work
 
@@ -1371,16 +1756,20 @@ No systematic bias when measured as percentage errors — all income quartiles s
 
 **Model assumptions**: Past predicts future (violated during disruptions), station independence (violated by substitution), no capacity constraints (violated frequently), normal operations only.
 
-**Recommended improvements**: - **High priority**: Event API integration, forecast data, zero-inflated Poisson, academic calendar - **Medium priority**: Station flow models, spatial features, real-time lags, ensemble methods - **Phase 2**: Transfer learning from other cities, active learning, field A/B testing
+**Recommended improvements**:
+
+-   **High priority**: Event API integration, forecast data, zero-inflated Poisson, academic calendar
+-   **Medium priority**: Station flow models, spatial features, real-time lags, ensemble methods
+-   **Phase 2**: Transfer learning from other cities, active learning, field A/B testing
 
 ## Final Reflection
 
-**The surprising difficulty of predicting summer demand** — despite its higher volume — reveals a fundamental tension in bike share operations: **the seasons with highest demand are precisely those where prediction is hardest**. This creates operational stress when stakes are highest.
+**The surprising difficulty of predicting summer demand** — despite its nearly double the volume — reveals a fundamental tension in bike share operations: **the seasons with highest demand are precisely those where prediction is hardest**. This creates operational stress when stakes are highest.
 
 The **good news**: Models can still provide value as decision support (not automation), especially when combined with real-time data and human judgment. The **caution**: Deploying these predictions without understanding their limitations and seasonal variation could lead to worse service precisely when demand is highest.
 
 **Operational takeaway**: Summer requires **more frequent rebalancing with larger safety margins**, not simply trusting predictions. Winter's better predictability allows **leaner operations with tighter optimization**. The system should adapt operational strategy to seasonal predictability, not treat all quarters identically.
 
-**Equity imperative**: Even equitable predictions risk perpetuating inequitable outcomes through spatial coverage bias and operational prioritization. Safeguards must be **proactive** (minimum service standards, over-supply in underserved areas) not reactive (monitoring after disparities emerge).
+**Equity imperative**: Even when models show different absolute errors across income levels, **percentage error gradients reveal that lower-income neighborhoods face more unpredictable service**. Safeguards must be **proactive** (minimum service standards, over-supply in underserved areas) not reactive (monitoring after disparities emerge).
 
-This analysis demonstrates that **effective bike share operations require understanding not just what your models predict, but when and why they fail** — and building systems resilient to those failures.
+This analysis demonstrates that **effective bike share operations require understanding not just what models predict, but when and why they fail** — and building systems resilient to those failures.
