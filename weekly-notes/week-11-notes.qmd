@@ -1,23 +1,75 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 11 Notes - Space-Time Prediction & Panel Data"
+date: "2025-11-17"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Bike-share rebalancing requires predicting demand ahead of time so stations do not run empty or full
+- Space-time prediction relies on panel data where each station is observed repeatedly across time
+- Temporal aggregation converts raw timestamps into structured hourly or 15-minute intervals
+- A complete panel must be constructed so every station-hour exists even if the trip count is zero
+- Temporal lags capture persistence patterns such as lag1Hour, lag3Hours, lag12Hours, and lag1day
+- Station fixed effects capture station-specific differences that do not change over time
+- Train-test splits must follow actual time flow to avoid temporal information leakage
+- Spatial or temporal clustering in errors reveals systematic weaknesses in the model
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Creating hour-level bins using floor_date
+dat <- dat %>%
+  mutate(interval60 = floor_date(ymd_hms(start_time), unit = "hour"))
+- Constructing a complete space-time panel using expand.grid
+study.panel <- expand.grid(
+  interval60 = unique(dat_census$interval60),
+  from_station_id = unique(dat_census$from_station_id)
+)
+- Filling missing trip counts by joining and replacing NA values with zero
+study.panel <- study.panel %>%
+  left_join(
+    dat_census %>%
+      group_by(interval60, from_station_id) %>%
+      summarize(Trip_Count = n()),
+    by = c("interval60", "from_station_id")
+  ) %>%
+  mutate(Trip_Count = replace_na(Trip_Count, 0))
+- Creating temporal lags for each station
+study.panel <- study.panel %>%
+  arrange(from_station_id, interval60) %>%
+  group_by(from_station_id) %>%
+  mutate(
+    lag1Hour = lag(Trip_Count, 1),
+    lag3Hours = lag(Trip_Count, 3),
+    lag12Hours = lag(Trip_Count, 12),
+    lag1day = lag(Trip_Count, 24)
+  ) %>%
+  ungroup()
+- Splitting data temporally into training and testing sets
+train <- study.panel %>% filter(week < 19)
+test  <- study.panel %>% filter(week >= 19)
+- Building linear regression models with station fixed effects included
+model <- lm(
+  Trip_Count ~ hour + dotw + Temperature + Precipitation +
+    lag1Hour + lag3Hours + lag1day +
+    Med_Inc + Percent_Taking_Public_Trans + Percent_White +
+    as.factor(from_station_id),
+  data = train
+)
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How many lag variables provide useful information before they introduce collinearity?
+- What is the best temporal resolution for forecasting—hourly, 30-minute, or 15-minute?
+- When do fixed effects improve predictive performance versus when do they overfit?
+- How to interpret clustered prediction errors across specific hours or neighborhoods?
+- What strategies prevent temporal leakage in more advanced modeling pipelines?
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Predicting bike-share demand supports efficient rebalancing operations and improves user experience
+- Space-time models help planners understand how demand changes by location and time of day
+- Temporal lags and fixed effects generalize to crime, transit ridership, emergency calls, environmental monitoring, and housing trends
+- Accurate temporal validation mimics real-world conditions and ensures reliability of predictions used for policy
+- Identifying systematic error clusters helps ensure fair and equitable service provision
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most interesting part of the week was seeing how temporal lags dramatically improve model accuracy
+- Constructing the full space-time panel clarified why lag variables require every station-hour combination
+- Temporal train-test splits reinforced the importance of evaluating model performance realistically
+- I plan to apply these concepts in future transportation modeling by incorporating lag features, station fixed effects, and proper temporal validation

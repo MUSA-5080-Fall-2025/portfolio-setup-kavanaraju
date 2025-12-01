@@ -2245,5 +2245,89 @@
     "title": "Assignment 5: Space-Time Prediction of Bike Share Demand",
     "section": "3.4 Re-create Train/Test with New Features",
     "text": "3.4 Re-create Train/Test with New Features\n\n\nCode\n# Filter to common stations and create new train/test\ntrain_q3_new &lt;- study_panel_complete_q3 %&gt;%\n  filter(week &lt; 36, start_station %in% common_stations_q3) %&gt;%\n  mutate(dotw_simple = factor(dotw, \n                               levels = c(\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\")))\n\ntest_q3_new &lt;- study_panel_complete_q3 %&gt;%\n  filter(week &gt;= 36, start_station %in% common_stations_q3) %&gt;%\n  mutate(dotw_simple = factor(dotw, \n                               levels = c(\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\")))\n\ncontrasts(train_q3_new$dotw_simple) &lt;- contr.treatment(7)\ncontrasts(test_q3_new$dotw_simple) &lt;- contr.treatment(7)"
+  },
+  {
+    "objectID": "weekly-notes/week-11-notes.html",
+    "href": "weekly-notes/week-11-notes.html",
+    "title": "Week 11 Notes - Space-Time Prediction & Panel Data",
+    "section": "",
+    "text": "Bike-share rebalancing requires predicting demand ahead of time so stations do not run empty or full\nSpace-time prediction relies on panel data where each station is observed repeatedly across time\nTemporal aggregation converts raw timestamps into structured hourly or 15-minute intervals\nA complete panel must be constructed so every station-hour exists even if the trip count is zero\nTemporal lags capture persistence patterns such as lag1Hour, lag3Hours, lag12Hours, and lag1day\nStation fixed effects capture station-specific differences that do not change over time\nTrain-test splits must follow actual time flow to avoid temporal information leakage\nSpatial or temporal clustering in errors reveals systematic weaknesses in the model"
+  },
+  {
+    "objectID": "weekly-notes/week-11-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-11-notes.html#key-concepts-learned",
+    "title": "Week 11 Notes - Space-Time Prediction & Panel Data",
+    "section": "",
+    "text": "Bike-share rebalancing requires predicting demand ahead of time so stations do not run empty or full\nSpace-time prediction relies on panel data where each station is observed repeatedly across time\nTemporal aggregation converts raw timestamps into structured hourly or 15-minute intervals\nA complete panel must be constructed so every station-hour exists even if the trip count is zero\nTemporal lags capture persistence patterns such as lag1Hour, lag3Hours, lag12Hours, and lag1day\nStation fixed effects capture station-specific differences that do not change over time\nTrain-test splits must follow actual time flow to avoid temporal information leakage\nSpatial or temporal clustering in errors reveals systematic weaknesses in the model"
+  },
+  {
+    "objectID": "weekly-notes/week-11-notes.html#coding-techniques",
+    "href": "weekly-notes/week-11-notes.html#coding-techniques",
+    "title": "Week 11 Notes - Space-Time Prediction & Panel Data",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nCreating hour-level bins using floor_date dat &lt;- dat %&gt;% mutate(interval60 = floor_date(ymd_hms(start_time), unit = “hour”))\nConstructing a complete space-time panel using expand.grid study.panel &lt;- expand.grid( interval60 = unique(dat_census\\(interval60),\nfrom_station_id = unique(dat_census\\)from_station_id) )\nFilling missing trip counts by joining and replacing NA values with zero study.panel &lt;- study.panel %&gt;% left_join( dat_census %&gt;% group_by(interval60, from_station_id) %&gt;% summarize(Trip_Count = n()), by = c(“interval60”, “from_station_id”) ) %&gt;% mutate(Trip_Count = replace_na(Trip_Count, 0))\nCreating temporal lags for each station study.panel &lt;- study.panel %&gt;% arrange(from_station_id, interval60) %&gt;% group_by(from_station_id) %&gt;% mutate( lag1Hour = lag(Trip_Count, 1), lag3Hours = lag(Trip_Count, 3), lag12Hours = lag(Trip_Count, 12), lag1day = lag(Trip_Count, 24) ) %&gt;% ungroup()\nSplitting data temporally into training and testing sets train &lt;- study.panel %&gt;% filter(week &lt; 19) test &lt;- study.panel %&gt;% filter(week &gt;= 19)\nBuilding linear regression models with station fixed effects included model &lt;- lm( Trip_Count ~ hour + dotw + Temperature + Precipitation + lag1Hour + lag3Hours + lag1day + Med_Inc + Percent_Taking_Public_Trans + Percent_White + as.factor(from_station_id), data = train )"
+  },
+  {
+    "objectID": "weekly-notes/week-11-notes.html#questions-challenges",
+    "href": "weekly-notes/week-11-notes.html#questions-challenges",
+    "title": "Week 11 Notes - Space-Time Prediction & Panel Data",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow many lag variables provide useful information before they introduce collinearity?\nWhat is the best temporal resolution for forecasting—hourly, 30-minute, or 15-minute?\nWhen do fixed effects improve predictive performance versus when do they overfit?\nHow to interpret clustered prediction errors across specific hours or neighborhoods?\nWhat strategies prevent temporal leakage in more advanced modeling pipelines?"
+  },
+  {
+    "objectID": "weekly-notes/week-11-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-11-notes.html#connections-to-policy",
+    "title": "Week 11 Notes - Space-Time Prediction & Panel Data",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nPredicting bike-share demand supports efficient rebalancing operations and improves user experience\nSpace-time models help planners understand how demand changes by location and time of day\nTemporal lags and fixed effects generalize to crime, transit ridership, emergency calls, environmental monitoring, and housing trends\nAccurate temporal validation mimics real-world conditions and ensures reliability of predictions used for policy\nIdentifying systematic error clusters helps ensure fair and equitable service provision"
+  },
+  {
+    "objectID": "weekly-notes/week-11-notes.html#reflection",
+    "href": "weekly-notes/week-11-notes.html#reflection",
+    "title": "Week 11 Notes - Space-Time Prediction & Panel Data",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most interesting part of the week was seeing how temporal lags dramatically improve model accuracy\nConstructing the full space-time panel clarified why lag variables require every station-hour combination\nTemporal train-test splits reinforced the importance of evaluating model performance realistically\nI plan to apply these concepts in future transportation modeling by incorporating lag features, station fixed effects, and proper temporal validation"
+  },
+  {
+    "objectID": "weekly-notes/week-12-notes.html",
+    "href": "weekly-notes/week-12-notes.html",
+    "title": "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)",
+    "section": "",
+    "text": "Traditional neighborhood analysis relies on snapshots that miss historical context\n\nNeighborhoods follow long-term trajectories, not single-time-point categories\n\nSequence analysis examines the order of change, not just cluster labels at each time\n\nThe “DNA” metaphor: neighborhood paths reveal inherited patterns, volatility, and stability\n\nClassic urban theories (Chicago School, LA School) predict different spatial structures of change\n\nK-means clustering assigns neighborhoods to categorical states at each time period\n\nCombining multiple years of clustering creates sequences (e.g., White → White → Hispanic → Hispanic)\n\nSequence similarity is measured using Optimal Matching and OMstrans, which emphasize transitions\n\nDissimilarity matrices allow hierarchical clustering of neighborhood trajectories\nMapping clusters reveals spatial patterns in long-term neighborhood change"
+  },
+  {
+    "objectID": "weekly-notes/week-12-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-12-notes.html#key-concepts-learned",
+    "title": "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)",
+    "section": "",
+    "text": "Traditional neighborhood analysis relies on snapshots that miss historical context\n\nNeighborhoods follow long-term trajectories, not single-time-point categories\n\nSequence analysis examines the order of change, not just cluster labels at each time\n\nThe “DNA” metaphor: neighborhood paths reveal inherited patterns, volatility, and stability\n\nClassic urban theories (Chicago School, LA School) predict different spatial structures of change\n\nK-means clustering assigns neighborhoods to categorical states at each time period\n\nCombining multiple years of clustering creates sequences (e.g., White → White → Hispanic → Hispanic)\n\nSequence similarity is measured using Optimal Matching and OMstrans, which emphasize transitions\n\nDissimilarity matrices allow hierarchical clustering of neighborhood trajectories\nMapping clusters reveals spatial patterns in long-term neighborhood change"
+  },
+  {
+    "objectID": "weekly-notes/week-12-notes.html#coding-techniques",
+    "href": "weekly-notes/week-12-notes.html#coding-techniques",
+    "title": "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nReshaping long-form tract-year data into wide sequences census_wide &lt;- census_data %&gt;% select(tract, year, cluster) %&gt;% pivot_wider(names_from = year, values_from = cluster)\nCreating sequence objects with TraMineR seq_data &lt;- seqdef( census_wide, var = c(“1980”, “1990”, “2000”, “2010”, “2020”), labels = c(“White”, “Black”, “Hispanic”, “Asian”, “Black/Hisp”, “White Mixed”) )\nTransition-rate substitution matrix for OMstrans submat &lt;- seqsubm(seq_data, method = “TRATE”, transition = “both”)\nComputing OMstrans dissimilarity dist_omstrans &lt;- seqdist( seq_data, method = “OMstrans”, indel = 1, sm = submat, otto = 0.1 )\nHierarchical clustering on sequence dissimilarity hc &lt;- hclust(as.dist(dist_omstrans), method = “ward.D2”) clusters &lt;- cutree(hc, k = 14)\nMapping sequence clusters using spatial join and ggplot map_data &lt;- tracts_sf %&gt;% left_join(tibble(tract = census_wide$tract, cluster = clusters), by = “tract”)\n\nggplot(map_data) + geom_sf(aes(fill = cluster)) + theme_void()"
+  },
+  {
+    "objectID": "weekly-notes/week-12-notes.html#questions-challenges",
+    "href": "weekly-notes/week-12-notes.html#questions-challenges",
+    "title": "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nHow many k-means clusters provide meaningful differentiation without oversplitting categories?\nHow do we choose substitution costs that reflect urban processes rather than arbitrary values?\nWhen is a rare transition meaningful (e.g., Hispanic → Asian) versus noise?\nHow should sequence clusters be merged when interpreting dendrogram results?\nHow can temporal sequence clustering be applied to policy problems like displacement risk or reinvestment targeting?"
+  },
+  {
+    "objectID": "weekly-notes/week-12-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-12-notes.html#connections-to-policy",
+    "title": "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nNeighborhoods with similar 2020 profiles may have completely different historical trajectories and therefore different policy needs\nSequences identify long-term decline, persistent disadvantage, or volatile paths that require tailored interventions\nClustering trajectories reveals spatially concentrated patterns such as suburban decline, inner-city reinvestment, or persistent segregation\nSequence analysis helps avoid one-size-fits-all policies and supports equity-centered planning\nUnderstanding transitions can guide anti-displacement policies, infrastructure investment, and community preservation strategies"
+  },
+  {
+    "objectID": "weekly-notes/week-12-notes.html#reflection",
+    "href": "weekly-notes/week-12-notes.html#reflection",
+    "title": "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)",
+    "section": "Reflection",
+    "text": "Reflection\n\nThe most interesting insight was how neighborhoods that look identical today follow drastically different historical paths\nSequence analysis brought clarity to why snapshots fail to explain neighborhood identity or change\nOMstrans helped highlight the importance of transition timing, not just endpoints\nI appreciate how clustering trajectories reveals metro-wide patterns that align with (or challenge) classic urban theories\nI will apply sequence methods to understand long-term patterns in neighborhoods I study, especially when designing policy that accounts for historical context"
   }
 ]

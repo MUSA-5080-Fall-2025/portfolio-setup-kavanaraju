@@ -1,23 +1,69 @@
 ---
-title: "Week 2 Notes - Course Introduction"
-date: "2025-09-15"
+title: "Week 12 Notes - Mapping the DNA of Urban Neighborhoods (Sequence Analysis)"
+date: "2025-11-24"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- Traditional neighborhood analysis relies on snapshots that miss historical context  
+- Neighborhoods follow long-term trajectories, not single-time-point categories  
+- Sequence analysis examines the *order* of change, not just cluster labels at each time  
+- The “DNA” metaphor: neighborhood paths reveal inherited patterns, volatility, and stability  
+- Classic urban theories (Chicago School, LA School) predict different spatial structures of change  
+- K-means clustering assigns neighborhoods to categorical states at each time period  
+- Combining multiple years of clustering creates sequences (e.g., White → White → Hispanic → Hispanic)  
+- Sequence similarity is measured using Optimal Matching and OMstrans, which emphasize transitions  
+- Dissimilarity matrices allow hierarchical clustering of neighborhood trajectories
+- Mapping clusters reveals spatial patterns in long-term neighborhood change 
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- Reshaping long-form tract-year data into wide sequences
+census_wide <- census_data %>%
+  select(tract, year, cluster) %>%
+  pivot_wider(names_from = year, values_from = cluster)
+- Creating sequence objects with TraMineR
+seq_data <- seqdef(
+  census_wide,
+  var = c("1980", "1990", "2000", "2010", "2020"),
+  labels = c("White", "Black", "Hispanic", "Asian", "Black/Hisp", "White Mixed")
+)
+- Transition-rate substitution matrix for OMstrans
+submat <- seqsubm(seq_data, method = "TRATE", transition = "both")
+- Computing OMstrans dissimilarity
+dist_omstrans <- seqdist(
+  seq_data,
+  method = "OMstrans",
+  indel = 1,
+  sm = submat,
+  otto = 0.1
+)
+- Hierarchical clustering on sequence dissimilarity
+hc <- hclust(as.dist(dist_omstrans), method = "ward.D2")
+clusters <- cutree(hc, k = 14)
+- Mapping sequence clusters using spatial join and ggplot
+map_data <- tracts_sf %>%
+  left_join(tibble(tract = census_wide$tract, cluster = clusters), by = "tract")
+
+ggplot(map_data) +
+  geom_sf(aes(fill = cluster)) +
+  theme_void()
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- How many k-means clusters provide meaningful differentiation without oversplitting categories?
+- How do we choose substitution costs that reflect urban processes rather than arbitrary values?
+- When is a rare transition meaningful (e.g., Hispanic → Asian) versus noise?
+- How should sequence clusters be merged when interpreting dendrogram results?
+- How can temporal sequence clustering be applied to policy problems like displacement risk or reinvestment targeting?
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- Neighborhoods with similar 2020 profiles may have completely different historical trajectories and therefore different policy needs
+- Sequences identify long-term decline, persistent disadvantage, or volatile paths that require tailored interventions
+- Clustering trajectories reveals spatially concentrated patterns such as suburban decline, inner-city reinvestment, or persistent segregation
+- Sequence analysis helps avoid one-size-fits-all policies and supports equity-centered planning
+- Understanding transitions can guide anti-displacement policies, infrastructure investment, and community preservation strategies
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- The most interesting insight was how neighborhoods that look identical today follow drastically different historical paths
+- Sequence analysis brought clarity to why snapshots fail to explain neighborhood identity or change
+- OMstrans helped highlight the importance of transition timing, not just endpoints
+- I appreciate how clustering trajectories reveals metro-wide patterns that align with (or challenge) classic urban theories
+- I will apply sequence methods to understand long-term patterns in neighborhoods I study, especially when designing policy that accounts for historical context

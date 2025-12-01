@@ -28,6 +28,10 @@ website:
             text: "Week 9"
           - href: weekly-notes/week-10-notes.qmd
             text: "Week 10"
+          - href: weekly-notes/week-11-notes.qmd
+            text: "Week 11"
+          - href: weekly-notes/week-12-notes.qmd
+            text: "Week 12"
 
       - text: "Assignments"
         menu:
