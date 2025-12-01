@@ -28,8 +28,6 @@ This assignment applies space-time predictive modeling to forecast hourly bike s
 
 I chose Q3 2024 for several reasons. First, summer represents the opposite seasonal extreme from Q1 2025 winter: highest annual ridership, minimal weather disruptions (no snow or ice events), significant tourist activity, and unique special events like July 4th and Labor Day weekend. Second, testing whether the substantial ridership increase from winter provides better predictions (more data, stronger patterns) or worse predictions (more complexity, diverse user types, capacity constraints).
 
-The research question: **Does higher ridership volume make predictions easier or harder?**
-
 ## Methodology Overview
 
 The core methodology aggregates individual trips into a space-time panel where each observation represents demand at a specific station during a specific hour. I build five baseline models with progressively more complex features, engineer new summer-specific features based on error analysis, and test whether Poisson regression designed for count data outperforms ordinary least squares linear regression.
@@ -120,7 +118,7 @@ census_api_key("52f0462d8b4e1e19ee64b25a3196677c5e32e660", overwrite = TRUE)
 
 # Part 1: Replicate with Q3 2024 & Compare to Q1 2025
 
-This section loads BOTH Q1 2025 (winter baseline from class) and Q3 2024 (summer) data to enable direct comparison throughout the analysis.
+This section loads both Q1 2025 (winter baseline from class) and Q3 2024 (summer) data to enable direct comparison throughout the analysis.
 
 ## 1.1 Load Q1 2025 Winter Baseline Data
 
@@ -132,9 +130,9 @@ indego_q1 <- read_csv("data/indego-trips-2025-q1.csv")
 
 cat("✓ Loaded Q1 2025 (January-March) WINTER BASELINE\n")
 cat("Total trips:", format(nrow(indego_q1), big.mark = ","), "\n")
-cat("Date range:", 
-    min(mdy_hm(indego_q1$start_time)), "to", 
-    max(mdy_hm(indego_q1$start_time)), "\n")
+cat("Date range:",
+    format(min(mdy_hm(indego_q1$start_time)), "%Y-%m-%d"), "to",
+    format(max(mdy_hm(indego_q1$start_time)), "%Y-%m-%d"), "\n")
 ```
 
 ## 1.2 Load Q3 2024 Summer Data
@@ -148,9 +146,9 @@ indego_q3 <- read_csv("data/indego-trips-2024-q3.csv")
 
 cat("✓ Loaded Q3 2024 (July-September) SUMMER DATA\n")
 cat("Total trips:", format(nrow(indego_q3), big.mark = ","), "\n")
-cat("Date range:", 
-    min(mdy_hm(indego_q3$start_time)), "to", 
-    max(mdy_hm(indego_q3$start_time)), "\n")
+cat("Date range:",
+    format(min(mdy_hm(indego_q3$start_time)), "%Y-%m-%d"), "to",
+    format(max(mdy_hm(indego_q3$start_time)), "%Y-%m-%d"), "\n")
 ```
 
 ## 1.3 Initial Comparison: Daily Ridership
@@ -297,7 +295,7 @@ kable(event_comparison,
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-**Finding**: Summer holidays (July 4th, Labor Day) show **lower** ridership (\~10-15% below typical) because they eliminate commute trips while only modestly increasing recreational trips. This contrasts sharply with Q1 2025's Eagles Super Bowl parade which created a massive spike. Different seasonal patterns require different feature engineering.
+**Finding**: Summer holidays (July 4th, Labor Day) show **lower** ridership (\~16% below typical) because they eliminate commute trips while only modestly increasing recreational trips. This contrasts sharply with Q1 2025's Eagles Super Bowl parade which created a massive spike. Different seasonal patterns require different feature engineering.
 
 ## 1.6 Hourly Patterns Comparison
 
@@ -347,7 +345,14 @@ ggplot(hourly_combined, aes(x = hour, y = avg_trips, color = quarter, linetype =
     linetype = "Day Type"
   ) +
   plotTheme +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+    legend.key.width = unit(1.6, "cm")
+  ) +
+  guides(
+    linetype = guide_legend(
+      override.aes = list(color = "black", linewidth = 1.2)
+    )
+  )
 ```
 
 **Finding**: Both quarters show similar temporal structure (AM/PM peaks on weekdays, distributed patterns on weekends), but summer operates at consistently higher volumes. This suggests core demand drivers (commuting) remain similar, but overall activity level differs substantially.
@@ -596,8 +601,16 @@ contrasts(test_q3$dotw_simple) <- contr.treatment(7)
 
 cat("\nQ3 Training observations:", format(nrow(train_q3), big.mark = ","), "\n")
 cat("Q3 Testing observations:", format(nrow(test_q3), big.mark = ","), "\n")
-cat("Training date range:", min(train_q3$date), "to", max(train_q3$date), "\n")
-cat("Testing date range:", min(test_q3$date), "to", max(test_q3$date), "\n")
+cat("Training date range:",
+    format(as.Date(min(train_q3$date), origin = "1970-01-01"), "%Y-%m-%d"),
+    "to",
+    format(as.Date(max(train_q3$date), origin = "1970-01-01"), "%Y-%m-%d"),
+    "\n")
+cat("Testing date range:",
+    format(as.Date(min(test_q3$date), origin = "1970-01-01"), "%Y-%m-%d"),
+    "to",
+    format(as.Date(max(test_q3$date), origin = "1970-01-01"), "%Y-%m-%d"),
+    "\n")
 ```
 
 ## 1.13 Build Five Baseline Models (Q3 2024)
@@ -945,10 +958,10 @@ mae_comparison <- mae_q3 %>%
 
 kable(mae_comparison,
       caption = "Part 1 Results: Q3 2024 Summer vs Q1 2025 Winter Performance",
-      col.names = c("Model", "Q3 MAE\n(Summer)", "Q1 MAE\n(Winter)", 
+      col.names = c("Model", "Q3 MAE (Summer)", "Q1 MAE (Winter)", 
                     "Summer Better?", "% Difference"),
       digits = 3) %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
 ```{r viz_comparison}
@@ -1202,56 +1215,22 @@ p_pct <- ggplot(equity_summary_q3, aes(x = income_quartile, y = avg_pct_error)) 
 grid.arrange(p_abs, p_pct, ncol = 2)
 ```
 
-## Part 2 Equity Findings
+**Demographic Findings**:
 
-The equity analysis reveals a more complex pattern than initially expected:
+The equity analysis by income quartile reveals a gradient in percentage errors:
 
-**Absolute MAE** is highest in Q4 (wealthiest neighborhoods), reflecting higher demand volumes. However, **percentage errors** show a concerning gradient in the opposite direction:
+- **Q1 (Lowest income)**: approximately 215% average percentage error
+- **Q2**: approximately 172% average percentage error  
+- **Q3**: approximately 103% average percentage error
+- **Q4 (Highest income)**: approximately 93% average percentage error
 
--   **Q1 (Lowest income)**: approximately 215% average error
--   **Q2**: approximately 172% average error\
--   **Q3**: approximately 103% average error
--   **Q4 (Highest income)**: approximately 93% average error
+While absolute MAE is highest in wealthier areas (reflecting higher demand), percentage errors show a gradient where lower-income neighborhoods experience more volatile demand relative to their baseline. This occurs because:
 
-**This means**: While high-income, high-demand stations have larger absolute errors, **lower-income neighborhoods experience more volatile and harder-to-predict demand relative to their baseline usage**.
+1. Low-income stations have very low average demand ( <0.5 trip/hour), so small absolute errors create large percentage errors
+2. Sparse, irregular demand patterns are inherently harder to model
+3. Fewer trips mean less training data for these stations
 
-**Why might this occur?**
-
-1.  **Small denominator problem**: Low-income stations have very low average demand (often \<1 trip/hour), so even small absolute errors (0.5-1 trips) create large percentage errors
-
-2.  **Sparse, irregular demand**: Lower-income stations may have more sporadic usage patterns that are inherently harder to model
-
-3.  **Data scarcity**: Fewer trips equals less training data for those stations, leading to less accurate predictions
-
-4.  **Missing demand drivers**: Lower-income areas may have different, less-regular demand patterns that commute-focused features don't capture well
-
-**Critical equity concern**: Even though the model is not explicitly biased against lower-income areas, **higher percentage errors suggest service quality predictions may be less reliable in neighborhoods that already face transportation disadvantages**.
-
-**Equity concerns beyond model performance**:
-
-1.  **Spatial coverage bias**: Stations concentrated in wealthier Center City and University City areas. Model cannot predict demand where stations don't exist.
-
-2.  **Data feedback loops**: Poor service → residents stop trying → less ridership → less data → worse predictions → poor service continues
-
-3.  **Supply-driven demand**: Model predicts **observed** demand, not **latent** demand. If a neighborhood lacks convenient stations, residents don't ride, and we never see their potential demand.
-
-4.  **Operational prioritization**: If system optimizes for high predicted demand (often wealthier areas), lower-income neighborhoods with lower but still-important demand may get deprioritized in truck routing.
-
-**Recommended safeguards**:
-
-1.  **Equity audit dashboard**: Track performance metrics (MAE, percentage error, service levels) by demographic quartiles monthly; flag degradation
-
-2.  **Minimum service standards**: Guarantee every station gets rebalancing every X hours regardless of predicted demand
-
-3.  **Proactive over-supply**: Intentionally maintain extra bikes in historically underserved areas even if predictions suggest lower demand
-
-4.  **Latent demand surveys**: Annual community surveys in underserved areas to understand unmet needs
-
-5.  **Transparent public reporting**: Publish quarterly equity reports so communities can hold the system accountable
-
-6.  **Community input loops**: Regular meetings with neighborhood associations from all income levels
-
-7.  **Expansion equity criteria**: When adding new stations, prioritize filling gaps in underserved areas over optimizing high-demand areas
+**Implication**: Service quality predictions may be less reliable in neighborhoods that already face transportation disadvantages, even though the model is not explicitly biased. 
 
 ------------------------------------------------------------------------
 
@@ -1272,7 +1251,7 @@ study_panel_complete_q3 <- study_panel_complete_q3 %>%
   )
 ```
 
-**Rationale**: Exploratory analysis showed July 4th and Labor Day had 10-15% **lower** ridership than typical weekdays. Unlike Q1's Eagles parade (massive spike), summer holidays **eliminate** commute trips while only modestly increasing recreational trips. Binary indicators capture this distinctive pattern.
+**Rationale**: Exploratory analysis showed July 4th and Labor Day had 10-15% lower ridership than typical weekdays. Unlike Q1's Eagles parade (massive spike), summer holidays eliminate commute trips while only modestly increasing recreational trips. Binary indicators capture this distinctive pattern.
 
 ## 3.2 Feature Set 2: Weather Non-Linearities
 
@@ -1292,7 +1271,7 @@ study_panel_complete_q3 <- study_panel_complete_q3 %>%
 
 **Rationale**:
 
--   **Perfect weather (60-75°F, no rain)**: Summer "Goldilocks zone" likely boosts discretionary and recreational trips beyond linear temperature effect
+-   **Perfect weather (60-75°F, no rain)**: It likely boosts discretionary and recreational trips beyond linear temperature effect
 -   **Too hot (\>85°F)**: Extreme heat may deter riding in non-linear ways that a simple linear temperature term cannot capture
 -   **Weekend × nice weather**: Recreational trips especially sensitive to perfect conditions; commuters ride regardless
 
@@ -1417,7 +1396,7 @@ mae_all_q3 <- data.frame(
 
 kable(mae_all_q3,
       caption = "Part 3: All Models Performance - Q3 2024",
-      col.names = c("Model", "Description", "MAE (trips)", "% Better\nthan M1", "% Better\nthan M2"),
+      col.names = c("Model", "Description", "MAE (trips)", "% Better than M1", "% Better than M2"),
       digits = 3) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
@@ -1500,14 +1479,14 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 
 -   **Zero-inflation reality**: Median demand is **0 trips/hour** (approximately 62% of observations are zeros). For these zero-demand periods, MAE metrics are misleading — measuring error on periods where essentially nothing happens anyway.
 
--   **Where it matters**: For **high-demand periods** (≥3 trips/hour, approximately 15% of observations), MAE is approximately **30-40% of average demand** — much more reasonable for operational planning.
+-   **Where it matters**: For high-demand periods (≥3 trips/hour, approximately 15% of observations), MAE is approximately 30-40% of average demand — much more reasonable for operational planning.
 
 **When prediction errors cause rebalancing problems**:
 
 **CRITICAL periods** (errors directly cause stockouts or overflows):
 
 1.  **AM Rush (7-9am weekdays)**: Underestimating leaves commuters stranded; missed trips cascade to lower ridership rest of day
-2.  **PM Rush (4-6pm weekdays)**: Analysis showed **systematic underprediction** here; worst-case scenario for evening rebalancing
+2.  **PM Rush (4-6pm weekdays)**: Analysis showed systematic underprediction here; worst-case scenario for evening rebalancing
 3.  **High-volume tourist stations**: 30th St Station, Rittenhouse Square where 1-2 trip errors times high frequency equals stockouts within an hour
 
 **MODERATE impact**:
@@ -1546,27 +1525,20 @@ cat("MAE as % of mean:", round((mae_best_q3/avg_demand_q3)*100, 1), "%\n")
 5.  **Accuracy monitoring**: Track MAE by station and hour; flag degradation immediately
 6.  **Fallback rules**: If prediction confidence low, revert to historical averages
 
-**Phased rollout strategy**:
-
-1.  **Phase 1 (Months 1-3)**: Parallel operation — predictions guide but do not control; measure accuracy
-2.  **Phase 2 (Months 4-6)**: Low-stakes automation — overnight and low-volume rebalancing automated
-3.  **Phase 3 (Months 7-12)**: Expand to non-rush periods if Phase 2 successful
-4.  **Phase 4 (Year 2+)**: Consider rush hour if accuracy improves with more data and features
-
 ## 4.2 Equity Considerations
 
 ### Do Errors Disproportionately Affect Certain Neighborhoods?
 
-**Direct model performance**: Analysis revealed a concerning **gradient in percentage errors**:
+**Direct model performance**: Analysis revealed a concerning gradient in percentage errors:
 
 -   **Lowest-income quartile (Q1)**: approximately 215% average error
 -   **Q2**: approximately 172% average error
 -   **Q3**: approximately 103% average error
 -   **Highest-income quartile (Q4)**: approximately 93% average error
 
-This means lower-income neighborhoods experience **more volatile and harder-to-predict demand relative to their baseline usage**, even though absolute errors are higher in wealthier, high-demand areas.
+This means lower-income neighborhoods experience more volatile and harder-to-predict demand relative to their baseline usage, even though absolute errors are higher in wealthier, high-demand areas.
 
-**Why this matters**: While the model is not explicitly biased against lower-income areas, **less reliable predictions mean service quality is harder to optimize in neighborhoods that already face transportation disadvantages**.
+**Why this matters**: While the model is not explicitly biased against lower-income areas, less reliable predictions mean service quality is harder to optimize in neighborhoods that already face transportation disadvantages.
 
 **Indirect concerns**: The system could worsen disparities through:
 
@@ -1574,7 +1546,7 @@ This means lower-income neighborhoods experience **more volatile and harder-to-p
 
 2.  **Data feedback loops**: Poor service → residents stop trying → less ridership → less training data → worse predictions → poor service continues
 
-3.  **Supply-driven demand**: Model predicts **observed** demand, not **latent** demand. If a neighborhood lacks convenient stations, residents don't ride, we don't see their potential demand.
+3.  **Supply-driven demand**: Model predicts observed demand, not latent demand. If a neighborhood lacks convenient stations, residents don't ride, we don't see their potential demand.
 
 4.  **Operational prioritization**: If system optimizes for high predicted demand (often wealthier areas), lower-income neighborhoods with lower but still-important demand may get deprioritized in truck routing.
 
@@ -1676,7 +1648,7 @@ This means lower-income neighborhoods experience **more volatile and harder-to-p
 **Zero-inflation properly handled**:
 
 -   OLS treats zeros as regular observations; they're qualitatively different (no demand vs. some demand)
--   **Mitigation**: Zero-inflated Poisson; hurdle models
+-   **Mitigation**: Zero-inflated Poisson
 
 ### How Would You Improve This with More Time/Data?
 
@@ -1692,20 +1664,13 @@ This means lower-income neighborhoods experience **more volatile and harder-to-p
 
 6.  **Real-time lag features**: Feed live dock data as features (current availability at station)
 7.  **Spatial features**: Distance to parks, universities, transit stations
-8.  **Ensemble methods**: Combine multiple models (random forest, neural net, linear)
-9.  **User-level modeling**: Different models for casual vs. member riders
-
-**Lower priority** (diminishing returns):
-
-10. **A/B testing**: Test predictions in field; learn from deployment errors
-11. **Active learning**: Prioritize improving predictions where errors matter most (PM Rush)
-12. **Transfer learning**: Train on other cities' bike share (DC, NYC) to bootstrap
+8.  **User-level modeling**: Different models for casual vs. member riders
 
 ------------------------------------------------------------------------
 
 # Conclusion
 
-This analysis tested the hypothesis that **higher ridership volume improves prediction accuracy** by providing more data and stronger patterns. **The results emphatically reject this hypothesis**.
+This analysis tested the hypothesis that **higher ridership volume improves prediction accuracy** by providing more data and stronger patterns. **The results reject this hypothesis**.
 
 ## Key Findings
 
@@ -1742,34 +1707,4 @@ Percentage errors show a concerning gradient: lowest-income areas have approxima
 
 **Conditionally yes** for regional strategy, medium-confidence routing, capacity planning. **Requires**: real-time dock data integration, weather forecasts, human oversight, quarterly retraining, accuracy monitoring, and phased rollout. **Do not use alone** for critical AM Rush decisions at busiest stations or fully automated rebalancing.
 
-## Research Contributions
-
-**1. Seasonal Complexity Hierarchy**: This analysis demonstrates that demand **stability** matters more for predictability than **volume**. Winter's lower but more consistent ridership (committed commuters) is actually easier to forecast than summer's higher but more variable patterns (diverse user types, events, tourists). **Implication for bike share operations**: Predictive systems may perform worse precisely during high-volume seasons when accuracy matters most.
-
-**2. Diminishing Returns of Feature Engineering**: Beyond basic temporal lags, sophisticated features add minimal value. The 95/5 rule (lags capture 95% of improvement, everything else 5%) suggests that **operational effort should focus on data quality and retraining frequency** rather than elaborate feature creation.
-
-**3. Equity Measurement Complexity**: Absolute MAE can mask equity concerns. Percentage errors reveal that lower-income areas have more volatile demand relative to baseline, suggesting **service optimization may be harder precisely where it matters most for transportation equity**.
-
-## Limitations & Future Work
-
-**Missing critical features**: Event calendars, weather forecasts (not actuals), station-to-station flows, academic calendars, real-time capacity data.
-
-**Model assumptions**: Past predicts future (violated during disruptions), station independence (violated by substitution), no capacity constraints (violated frequently), normal operations only.
-
-**Recommended improvements**:
-
--   **High priority**: Event API integration, forecast data, zero-inflated Poisson, academic calendar
--   **Medium priority**: Station flow models, spatial features, real-time lags, ensemble methods
--   **Phase 2**: Transfer learning from other cities, active learning, field A/B testing
-
-## Final Reflection
-
-**The surprising difficulty of predicting summer demand** — despite its nearly double the volume — reveals a fundamental tension in bike share operations: **the seasons with highest demand are precisely those where prediction is hardest**. This creates operational stress when stakes are highest.
-
-The **good news**: Models can still provide value as decision support (not automation), especially when combined with real-time data and human judgment. The **caution**: Deploying these predictions without understanding their limitations and seasonal variation could lead to worse service precisely when demand is highest.
-
-**Operational takeaway**: Summer requires **more frequent rebalancing with larger safety margins**, not simply trusting predictions. Winter's better predictability allows **leaner operations with tighter optimization**. The system should adapt operational strategy to seasonal predictability, not treat all quarters identically.
-
-**Equity imperative**: Even when models show different absolute errors across income levels, **percentage error gradients reveal that lower-income neighborhoods face more unpredictable service**. Safeguards must be **proactive** (minimum service standards, over-supply in underserved areas) not reactive (monitoring after disparities emerge).
-
-This analysis demonstrates that **effective bike share operations require understanding not just what models predict, but when and why they fail** — and building systems resilient to those failures.
+This analysis demonstrates that effective bike share operations require understanding not just what models predict, but when and why they fail, and building systems resilient to those failures.
